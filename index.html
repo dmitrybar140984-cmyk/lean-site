@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LeanPro — Курсы по бережливому производству</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a href="#" class="logo">
+      <span class="logo__icon">⬡</span>
+      <span class="logo__text">Lean<strong>Pro</strong></span>
+    </a>
+    <nav class="nav" id="nav">
+      <a href="#about" class="nav__link">О нас</a>
+      <a href="#courses" class="nav__link">Курсы</a>
+      <a href="#benefits" class="nav__link">Преимущества</a>
+      <a href="#reviews" class="nav__link">Отзывы</a>
+      <a href="#contact" class="nav__link">Контакты</a>
+    </nav>
+    <a href="#courses" class="btn btn--sm header__cta">Начать обучение</a>
+    <button class="burger" id="burger" aria-label="Меню">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="container hero__inner">
+    <div class="hero__badge">🏆 №1 в России по Lean-образованию</div>
+    <h1 class="hero__title">Бережливое производство —<br/><span class="accent">ваш путь к эффективности</span></h1>
+    <p class="hero__sub">Профессиональные курсы для руководителей, инженеров и специалистов по улучшению процессов. Сертификат государственного образца.</p>
+    <div class="hero__actions">
+      <a href="#courses" class="btn btn--primary btn--lg">Смотреть курсы</a>
+      <a href="#about" class="btn btn--ghost btn--lg">Узнать больше</a>
+    </div>
+    <div class="hero__stats">
+      <div class="stat"><span class="stat__num">3 400+</span><span class="stat__label">выпускников</span></div>
+      <div class="stat"><span class="stat__num">12</span><span class="stat__label">курсов</span></div>
+      <div class="stat"><span class="stat__num">97%</span><span class="stat__label">трудоустройство</span></div>
+      <div class="stat"><span class="stat__num">8 лет</span><span class="stat__label">на рынке</span></div>
+    </div>
+  </div>
+  <div class="hero__bg"></div>
+</section>
+
+<!-- ===================== LOGOS ===================== -->
+<section class="partners">
+  <div class="container">
+    <p class="partners__label">Нам доверяют лидеры промышленности</p>
+    <div class="partners__list">
+      <span class="partner">КАМАЗ</span>
+      <span class="partner">Росатом</span>
+      <span class="partner">Сбербанк</span>
+      <span class="partner">Северсталь</span>
+      <span class="partner">ГАЗ</span>
+      <span class="partner">Норникель</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ABOUT ===================== -->
+<section class="about section" id="about">
+  <div class="container about__inner">
+    <div class="about__visual">
+      <div class="about__img-wrap">
+        <div class="about__img-placeholder">
+          <div class="pdca">
+            <div class="pdca__ring"></div>
+            <div class="pdca__inner">
+              <div class="pdca__item pdca__p">Plan</div>
+              <div class="pdca__item pdca__d">Do</div>
+              <div class="pdca__item pdca__c">Check</div>
+              <div class="pdca__item pdca__a">Act</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="about__content">
+      <p class="section__tag">О компании</p>
+      <h2 class="section__title">Что такое бережливое производство?</h2>
+      <p class="about__text">Бережливое производство (Lean Manufacturing) — это философия управления, направленная на устранение всех видов потерь и непрерывное совершенствование процессов. Метод разработан Toyota и сегодня применяется в компаниях по всему миру.</p>
+      <p class="about__text">Наши курсы — это практические знания от экспертов-практиков с реальным опытом внедрения Lean на российских и международных предприятиях.</p>
+      <div class="about__tools">
+        <span class="tool-tag">5S</span>
+        <span class="tool-tag">Кайдзен</span>
+        <span class="tool-tag">Канбан</span>
+        <span class="tool-tag">VSM</span>
+        <span class="tool-tag">SMED</span>
+        <span class="tool-tag">TPM</span>
+        <span class="tool-tag">Poka-Yoke</span>
+        <span class="tool-tag">Six Sigma</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== COURSES ===================== -->
+<section class="courses section" id="courses">
+  <div class="container">
+    <div class="section__head">
+      <p class="section__tag">Обучение</p>
+      <h2 class="section__title">Наши курсы</h2>
+      <p class="section__sub">Выберите программу под ваш уровень и задачи</p>
+    </div>
+    <div class="courses__tabs">
+      <button class="tab active" data-filter="all">Все</button>
+      <button class="tab" data-filter="base">Базовые</button>
+      <button class="tab" data-filter="advanced">Продвинутые</button>
+      <button class="tab" data-filter="corporate">Корпоративные</button>
+    </div>
+    <div class="courses__grid" id="coursesGrid">
+
+      <div class="course-card" data-cat="base">
+        <div class="course-card__badge">Хит продаж</div>
+        <div class="course-card__icon">📋</div>
+        <div class="course-card__cat">Базовый</div>
+        <h3 class="course-card__title">Введение в Lean</h3>
+        <p class="course-card__desc">Фундаментальные принципы бережливого производства. Идеально для начинающих специалистов и руководителей.</p>
+        <ul class="course-card__features">
+          <li>✓ 16 часов видеоуроков</li>
+          <li>✓ Практические задания</li>
+          <li>✓ Сертификат</li>
+          <li>✓ Доступ навсегда</li>
+        </ul>
+        <div class="course-card__footer">
+          <div class="course-card__price">
+            <span class="price__old">9 900 ₽</span>
+            <span class="price__cur">6 900 ₽</span>
+          </div>
+          <button class="btn btn--primary" onclick="openModal('Введение в Lean', '6 900 ₽')">Купить</button>
+        </div>
+      </div>
+
+      <div class="course-card" data-cat="base">
+        <div class="course-card__icon">🗂️</div>
+        <div class="course-card__cat">Базовый</div>
+        <h3 class="course-card__title">Система 5S на производстве</h3>
+        <p class="course-card__desc">Организация рабочего пространства: сортировка, систематизация, уборка, стандартизация, совершенствование.</p>
+        <ul class="course-card__features">
+          <li>✓ 12 часов видеоуроков</li>
+          <li>✓ Чек-листы и шаблоны</li>
+          <li>✓ Сертификат</li>
+          <li>✓ Куратор 30 дней</li>
+        </ul>
+        <div class="course-card__footer">
+          <div class="course-card__price">
+            <span class="price__cur">5 900 ₽</span>
+          </div>
+          <button class="btn btn--primary" onclick="openModal('Система 5S на производстве', '5 900 ₽')">Купить</button>
+        </div>
+      </div>
+
+      <div class="course-card" data-cat="base">
+        <div class="course-card__icon">🔄</div>
+        <div class="course-card__cat">Базовый</div>
+        <h3 class="course-card__title">Картирование потока создания ценности</h3>
+        <p class="course-card__desc">VSM — ключевой инструмент Lean. Научитесь видеть и устранять потери в производственных процессах.</p>
+        <ul class="course-card__features">
+          <li>✓ 20 часов видеоуроков</li>
+          <li>✓ 3 реальных кейса</li>
+          <li>✓ Сертификат</li>
+          <li>✓ Доступ навсегда</li>
+        </ul>
+        <div class="course-card__footer">
+          <div class="course-card__price">
+            <span class="price__old">11 900 ₽</span>
+            <span class="price__cur">8 900 ₽</span>
+          </div>
+          <button class="btn btn--primary" onclick="openModal('Картирование потока создания ценности', '8 900 ₽')">Купить</button>
+        </div>
+      </div>
+
+      <div class="course-card course-card--featured" data-cat="advanced">
+        <div class="course-card__badge course-card__badge--gold">Рекомендуем</div>
+        <div class="course-card__icon">🚀</div>
+        <div class="course-card__cat">Продвинутый</div>
+        <h3 class="course-card__title">Lean-лидер: полный курс</h3>
+        <p class="course-card__desc">Комплексная программа для руководителей Lean-проектов. Все инструменты, методики и практика внедрения.</p>
+        <ul class="course-card__features">
+          <li>✓ 60 часов обучения</li>
+          <li>✓ 8 реальных проектов</li>
+          <li>✓ Сертификат Lean-лидера</li>
+          <li>✓ Менторство 3 месяца</li>
+          <li>✓ Сообщество выпускников</li>
+        </ul>
+        <div class="course-card__footer">
+          <div class="course-card__price">
+            <span class="price__old">49 900 ₽</span>
+            <span class="price__cur">34 900 ₽</span>
+          </div>
+          <button class="btn btn--primary" onclick="openModal('Lean-лидер: полный курс', '34 900 ₽')">Купить</button>
+        </div>
+      </div>
+
+      <div class="course-card" data-cat="advanced">
+        <div class="course-card__icon">⚙️</div>
+        <div class="course-card__cat">Продвинутый</div>
+        <h3 class="course-card__title">Six Sigma Green Belt</h3>
+        <p class="course-card__desc">Методология DMAIC, статистические инструменты управления качеством. Подготовка к международной сертификации.</p>
+        <ul class="course-card__features">
+          <li>✓ 40 часов видеоуроков</li>
+          <li>✓ Проект по улучшению</li>
+          <li>✓ Международный сертификат</li>
+          <li>✓ Разбор кейсов</li>
+        </ul>
+        <div class="course-card__footer">
+          <div class="course-card__price">
+            <span class="price__old">39 900 ₽</span>
+            <span class="price__cur">29 900 ₽</span>
+          </div>
+          <button class="btn btn--primary" onclick="openModal('Six Sigma Green Belt', '29 900 ₽')">Купить</button>
+        </div>
+      </div>
+
+      <div class="course-card" data-cat="advanced">
+        <div class="course-card__icon">🎯</div>
+        <div class="course-card__cat">Продвинутый</div>
+        <h3 class="course-card__title">Кайдзен и непрерывное улучшение</h3>
+        <p class="course-card__desc">Философия и практика кайдзен. Создание культуры постоянных улучшений в организации.</p>
+        <ul class="course-card__features">
+          <li>✓ 24 часа видеоуроков</li>
+          <li>✓ Воркшоп кайдзен-блиц</li>
+          <li>✓ Сертификат</li>
+          <li>✓ Куратор 60 дней</li>
+        </ul>
+        <div class="course-card__footer">
+          <div class="course-card__price">
+            <span class="price__cur">18 900 ₽</span>
+          </div>
+          <button class="btn btn--primary" onclick="openModal('Кайдзен и непрерывное улучшение', '18 900 ₽')">Купить</button>
+        </div>
+      </div>
+
+      <div class="course-card course-card--corporate" data-cat="corporate">
+        <div class="course-card__icon">🏭</div>
+        <div class="course-card__cat">Корпоративный</div>
+        <h3 class="course-card__title">Lean-трансформация предприятия</h3>
+        <p class="course-card__desc">Индивидуальная программа обучения для вашей команды с учётом специфики производства. Обучение на вашей территории.</p>
+        <ul class="course-card__features">
+          <li>✓ Разработка под ваши задачи</li>
+          <li>✓ Обучение на предприятии</li>
+          <li>✓ Сопровождение проектов</li>
+          <li>✓ Корпоративные сертификаты</li>
+        </ul>
+        <div class="course-card__footer">
+          <div class="course-card__price">
+            <span class="price__cur">от 150 000 ₽</span>
+          </div>
+          <button class="btn btn--primary" onclick="openModal('Lean-трансформация предприятия', 'от 150 000 ₽')">Запросить КП</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BENEFITS ===================== -->
+<section class="benefits section" id="benefits">
+  <div class="container">
+    <div class="section__head">
+      <p class="section__tag">Почему мы</p>
+      <h2 class="section__title">Преимущества LeanPro</h2>
+    </div>
+    <div class="benefits__grid">
+      <div class="benefit-card">
+        <div class="benefit-card__icon">🎓</div>
+        <h3>Практикующие эксперты</h3>
+        <p>Наши преподаватели — действующие Lean-консультанты с опытом внедрения на реальных предприятиях</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-card__icon">📱</div>
+        <h3>Удобный формат</h3>
+        <p>Обучение в любое время, с любого устройства. Видео, тесты, практические задания — всё в одном месте</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-card__icon">📜</div>
+        <h3>Официальный сертификат</h3>
+        <p>Государственные удостоверения о повышении квалификации, которые ценятся работодателями</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-card__icon">🤝</div>
+        <h3>Поддержка куратора</h3>
+        <p>Персональный куратор отвечает на вопросы и помогает применить знания в вашей ситуации</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-card__icon">💼</div>
+        <h3>Помощь с трудоустройством</h3>
+        <p>База вакансий от партнёров, помощь в составлении резюме и подготовке к собеседованию</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-card__icon">🔁</div>
+        <h3>Рассрочка без %</h3>
+        <p>Оплата в рассрочку на 6 или 12 месяцев без процентов и переплат через банки-партнёры</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PROCESS ===================== -->
+<section class="process section">
+  <div class="container">
+    <div class="section__head">
+      <p class="section__tag">Как это работает</p>
+      <h2 class="section__title">Путь к результату</h2>
+    </div>
+    <div class="process__steps">
+      <div class="process__step">
+        <div class="step__num">01</div>
+        <div class="step__content">
+          <h3>Выберите курс</h3>
+          <p>Подберите программу под ваши цели и уровень подготовки</p>
+        </div>
+      </div>
+      <div class="process__arrow">→</div>
+      <div class="process__step">
+        <div class="step__num">02</div>
+        <div class="step__content">
+          <h3>Оплатите</h3>
+          <p>Картой, по счёту или в рассрочку — удобным способом</p>
+        </div>
+      </div>
+      <div class="process__arrow">→</div>
+      <div class="process__step">
+        <div class="step__num">03</div>
+        <div class="step__content">
+          <h3>Учитесь</h3>
+          <p>Проходите уроки в своём темпе, выполняйте практику</p>
+        </div>
+      </div>
+      <div class="process__arrow">→</div>
+      <div class="process__step">
+        <div class="step__num">04</div>
+        <div class="step__content">
+          <h3>Применяйте</h3>
+          <p>Внедряйте Lean на производстве и повышайте эффективность</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== REVIEWS ===================== -->
+<section class="reviews section" id="reviews">
+  <div class="container">
+    <div class="section__head">
+      <p class="section__tag">Отзывы</p>
+      <h2 class="section__title">Что говорят наши выпускники</h2>
+    </div>
+    <div class="reviews__grid">
+      <div class="review-card">
+        <div class="review-card__stars">★★★★★</div>
+        <p class="review-card__text">«После курса "Lean-лидер" смог провести кайдзен-блиц на нашем заводе. Сократили время переналадки с 4 часов до 45 минут. Руководство оценило — получил повышение.»</p>
+        <div class="review-card__author">
+          <div class="author__avatar">АК</div>
+          <div>
+            <strong>Алексей Козлов</strong>
+            <span>Начальник цеха, Тольятти</span>
+          </div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="review-card__stars">★★★★★</div>
+        <p class="review-card__text">«Очень практичный курс по VSM. Преподаватель — настоящий практик, приводил реальные примеры. Сразу применила на своём участке. Потери сократили на 23%.»</p>
+        <div class="review-card__author">
+          <div class="author__avatar">НС</div>
+          <div>
+            <strong>Наталья Соколова</strong>
+            <span>Инженер по качеству, Екатеринбург</span>
+          </div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="review-card__stars">★★★★☆</div>
+        <p class="review-card__text">«Прошёл 5S и потом "Введение в Lean". Отличная подача материала, всё структурировано. Единственное — хотелось бы больше видеопримеров из отечественных предприятий.»</p>
+        <div class="review-card__author">
+          <div class="author__avatar">ВП</div>
+          <div>
+            <strong>Виктор Петров</strong>
+            <span>Мастер участка, Челябинск</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CTA BANNER ===================== -->
+<section class="cta-banner">
+  <div class="container cta-banner__inner">
+    <div class="cta-banner__content">
+      <h2>Готовы трансформировать своё производство?</h2>
+      <p>Получите бесплатную консультацию по выбору курса и специальные условия для первого заказа</p>
+    </div>
+    <a href="#contact" class="btn btn--white btn--lg">Получить консультацию</a>
+  </div>
+</section>
+
+<!-- ===================== CONTACT ===================== -->
+<section class="contact section" id="contact">
+  <div class="container contact__inner">
+    <div class="contact__info">
+      <p class="section__tag">Контакты</p>
+      <h2 class="section__title">Свяжитесь с нами</h2>
+      <p class="contact__sub">Наши эксперты помогут выбрать подходящую программу и ответят на все вопросы</p>
+      <div class="contact__items">
+        <div class="contact__item">
+          <span class="contact__icon">📞</span>
+          <div>
+            <strong>Телефон</strong>
+            <span>8 800 555-35-35 (бесплатно)</span>
+          </div>
+        </div>
+        <div class="contact__item">
+          <span class="contact__icon">✉️</span>
+          <div>
+            <strong>Email</strong>
+            <span>info@leanpro.ru</span>
+          </div>
+        </div>
+        <div class="contact__item">
+          <span class="contact__icon">🕐</span>
+          <div>
+            <strong>Режим работы</strong>
+            <span>Пн–Пт 9:00–20:00 МСК</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <form class="contact__form" id="contactForm" onsubmit="submitForm(event)">
+      <h3>Задать вопрос или записаться</h3>
+      <div class="form__group">
+        <label>Ваше имя *</label>
+        <input type="text" name="name" placeholder="Иван Иванов" required />
+      </div>
+      <div class="form__group">
+        <label>Телефон *</label>
+        <input type="tel" name="phone" placeholder="+7 (___) ___-__-__" required />
+      </div>
+      <div class="form__group">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="ivan@company.ru" />
+      </div>
+      <div class="form__group">
+        <label>Интересующий курс</label>
+        <select name="course">
+          <option value="">Выбрать курс...</option>
+          <option>Введение в Lean</option>
+          <option>Система 5S на производстве</option>
+          <option>Картирование потока создания ценности</option>
+          <option>Lean-лидер: полный курс</option>
+          <option>Six Sigma Green Belt</option>
+          <option>Кайдзен и непрерывное улучшение</option>
+          <option>Lean-трансформация предприятия</option>
+        </select>
+      </div>
+      <div class="form__group">
+        <label>Сообщение</label>
+        <textarea name="message" rows="4" placeholder="Ваш вопрос или комментарий..."></textarea>
+      </div>
+      <button type="submit" class="btn btn--primary btn--full">Отправить заявку</button>
+      <p class="form__note">Нажимая кнопку, вы соглашаетесь с обработкой персональных данных</p>
+    </form>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <a href="#" class="logo">
+        <span class="logo__icon">⬡</span>
+        <span class="logo__text">Lean<strong>Pro</strong></span>
+      </a>
+      <p>Профессиональное образование в области бережливого производства с 2016 года</p>
+    </div>
+    <div class="footer__col">
+      <strong>Курсы</strong>
+      <a href="#">Введение в Lean</a>
+      <a href="#">Система 5S</a>
+      <a href="#">VSM</a>
+      <a href="#">Lean-лидер</a>
+      <a href="#">Six Sigma</a>
+    </div>
+    <div class="footer__col">
+      <strong>Компания</strong>
+      <a href="#">О нас</a>
+      <a href="#">Преподаватели</a>
+      <a href="#">Отзывы</a>
+      <a href="#">Блог</a>
+      <a href="#">Вакансии</a>
+    </div>
+    <div class="footer__col">
+      <strong>Поддержка</strong>
+      <a href="#">FAQ</a>
+      <a href="#">Условия оплаты</a>
+      <a href="#">Политика возврата</a>
+      <a href="#">Политика конфиденциальности</a>
+    </div>
+  </div>
+  <div class="footer__bottom">
+    <div class="container">
+      <span>© 2024 LeanPro. Все права защищены.</span>
+      <span>Лицензия на образовательную деятельность №12345</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ===================== MODAL ===================== -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal__close" onclick="closeModal()">✕</button>
+    <div class="modal__icon">🛒</div>
+    <h3 class="modal__title" id="modalTitle">Оформление заказа</h3>
+    <p class="modal__price" id="modalPrice"></p>
+    <form onsubmit="submitOrder(event)">
+      <div class="form__group">
+        <label>Имя *</label>
+        <input type="text" placeholder="Ваше имя" required />
+      </div>
+      <div class="form__group">
+        <label>Телефон *</label>
+        <input type="tel" placeholder="+7 (___) ___-__-__" required />
+      </div>
+      <div class="form__group">
+        <label>Email *</label>
+        <input type="email" placeholder="your@email.ru" required />
+      </div>
+      <div class="form__group">
+        <label>Способ оплаты</label>
+        <select>
+          <option>Банковская карта</option>
+          <option>Рассрочка 6 месяцев (без %)</option>
+          <option>Рассрочка 12 месяцев (без %)</option>
+          <option>По счёту (для юр. лиц)</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn--primary btn--full">Подтвердить заказ</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== SUCCESS TOAST ===================== -->
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
