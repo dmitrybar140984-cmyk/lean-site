@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>5S Тренажёр — LeanPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#1a6b3c;--gd:#134d2c;--gl:#e8f5ee;
+  --red:#e53935;--rdl:#ffebee;
+  --yellow:#f5a623;
+  --text:#1a1a2e;--muted:#6b7280;
+  --bg:#f8faf9;--white:#fff;
+  --radius:12px;--shadow:0 4px 24px rgba(0,0,0,0.09);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* HEADER */
+.g-header{background:var(--white);border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.g-header-inner{max-width:900px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.g-logo{text-decoration:none;color:var(--text);font-size:20px;font-weight:800;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.g-logo span{color:var(--g)}
+.g-steps{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap}
+.step-pip{width:36px;height:36px;border-radius:50%;border:2px solid #e5e7eb;background:var(--white);color:var(--muted);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:.25s;cursor:default;flex-shrink:0}
+.step-pip.done{background:var(--g);border-color:var(--g);color:#fff}
+.step-pip.active{border-color:var(--g);color:var(--g);box-shadow:0 0 0 3px rgba(26,107,60,.2)}
+.g-score-box{background:var(--gl);color:var(--g);padding:6px 18px;border-radius:20px;font-weight:700;font-size:15px;flex-shrink:0}
+
+/* MAIN WRAP */
+.g-wrap{max-width:900px;margin:0 auto;padding:24px 16px 60px}
+
+/* INTRO CARD */
+.intro-card{background:var(--white);border-radius:20px;box-shadow:var(--shadow);padding:56px 40px;text-align:center;max-width:560px;margin:0 auto}
+.intro-card .big-icon{font-size:80px;margin-bottom:20px}
+.intro-card .step-tag{background:var(--gl);color:var(--g);font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:4px 16px;border-radius:20px;display:inline-block;margin-bottom:16px}
+.intro-card h2{font-size:28px;font-weight:800;margin-bottom:12px}
+.intro-card p{color:var(--muted);font-size:17px;line-height:1.6;margin-bottom:32px}
+.intro-card .principle{background:var(--gl);border-left:4px solid var(--g);border-radius:8px;padding:14px 18px;text-align:left;font-size:15px;font-weight:600;color:var(--g);margin-bottom:32px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;font-family:inherit;font-weight:700;font-size:16px;border-radius:10px;border:none;cursor:pointer;padding:14px 32px;transition:.2s}
+.btn-primary{background:var(--g);color:#fff}
+.btn-primary:hover{background:var(--gd);transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,107,60,.3)}
+.btn-secondary{background:var(--gl);color:var(--g)}
+.btn-secondary:hover{background:#d4eedf}
+.btn-red{background:var(--red);color:#fff}
+.btn-full{width:100%}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+/* STEP 1 — SORT */
+.s1-workspace{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:24px}
+@media(max-width:600px){.s1-workspace{grid-template-columns:repeat(3,1fr)}}
+.item-card{background:var(--white);border:2px solid #e5e7eb;border-radius:var(--radius);padding:12px 8px;text-align:center;cursor:pointer;transition:.2s;user-select:none}
+.item-card:hover{border-color:var(--g);transform:translateY(-2px)}
+.item-card.selected{border-color:var(--g);background:var(--gl);box-shadow:0 0 0 3px rgba(26,107,60,.2)}
+.item-card.placed{opacity:.35;pointer-events:none}
+.item-card.flash-ok{animation:flashOk .5s}
+.item-card.flash-err{animation:flashErr .5s}
+.item-card .ic{font-size:34px;margin-bottom:6px}
+.item-card .nm{font-size:12px;font-weight:600;color:var(--text);line-height:1.3}
+.s1-bins{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bin{border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;border:2px dashed;transition:.2s}
+.bin-keep{border-color:#4caf50;background:#f1faf1;color:#2e7d32}
+.bin-keep:hover,.bin-keep.active{background:#d4edda;border-style:solid}
+.bin-remove{border-color:var(--red);background:#fff5f5;color:var(--red)}
+.bin-remove:hover,.bin-remove.active{background:#ffd6d6;border-style:solid}
+.bin .bin-icon{font-size:36px;margin-bottom:8px}
+.bin .bin-name{font-size:16px;font-weight:800;margin-bottom:4px}
+.bin .bin-count{font-size:13px;opacity:.7}
+
+/* FEEDBACK TOAST inside game */
+.g-feedback{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a2e;color:#fff;padding:12px 24px;border-radius:8px;font-size:15px;font-weight:500;opacity:0;transition:.3s;z-index:500;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.g-feedback.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.g-feedback.ok{background:var(--g)}
+.g-feedback.err{background:var(--red)}
+
+/* STEP 2 — ORDER */
+.s2-items{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:28px;min-height:80px;padding:16px;background:var(--white);border:2px dashed #e5e7eb;border-radius:var(--radius)}
+.s2-zones{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:500px){.s2-zones{grid-template-columns:1fr}}
+.zone{background:var(--white);border:2px dashed #e5e7eb;border-radius:var(--radius);padding:16px;min-height:110px;cursor:pointer;transition:.2s;text-align:center}
+.zone:hover{border-color:var(--g);background:var(--gl)}
+.zone.selected-target{border-color:var(--g);border-style:solid;background:var(--gl)}
+.zone .z-icon{font-size:30px;margin-bottom:6px}
+.zone .z-name{font-size:14px;font-weight:700;margin-bottom:8px}
+.zone .z-items{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.zone-chip{background:var(--gl);color:var(--g);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;animation:popIn .3s}
+.zone.flash-ok{animation:flashOk .5s}
+.zone.flash-err{animation:flashErr .5s}
+
+/* STEP 3 — SHINE */
+.s3-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+.s3-timer{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:800;color:var(--g)}
+.s3-timer.urgent{color:var(--red);animation:pulse 1s infinite}
+.s3-counter{background:var(--gl);color:var(--g);padding:8px 20px;border-radius:20px;font-weight:700;font-size:15px}
+.workshop{position:relative;background:linear-gradient(160deg,#f0f4f0 0%,#e8eceb 100%);border:2px solid #dde;border-radius:16px;height:360px;overflow:hidden;cursor:crosshair}
+@media(max-width:600px){.workshop{height:280px}}
+.workshop-label{position:absolute;top:10px;left:14px;font-size:11px;font-weight:700;color:#aaa;letter-spacing:.1em;text-transform:uppercase}
+.workbench{position:absolute;bottom:0;left:0;right:0;height:55px;background:linear-gradient(to bottom,#8d6748,#6b4f3a);display:flex;align-items:center;padding:0 16px;gap:12px}
+.shelf{position:absolute;top:60px;left:0;right:0;height:14px;background:#b8895a;border-radius:4px}
+.machine{position:absolute;top:80px;right:30px;width:80px;height:140px;background:#607d8b;border-radius:8px;opacity:.6}
+.machine::before{content:'';position:absolute;top:20px;left:10px;right:10px;height:30px;background:#455a64;border-radius:4px}
+.dirt{position:absolute;font-size:28px;transition:.2s;cursor:pointer;user-select:none;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+.dirt:hover{transform:scale(1.2)}
+.dirt.cleaned{animation:cleanPop .4s forwards}
+.timer-bar-wrap{height:6px;background:#e5e7eb;border-radius:3px;margin-bottom:16px;overflow:hidden}
+.timer-bar{height:100%;background:var(--g);border-radius:3px;transition:width .9s linear}
+.timer-bar.urgent{background:var(--red)}
+
+/* STEP 4 — STANDARDIZE / QUIZ */
+.quiz-progress{display:flex;gap:6px;margin-bottom:24px}
+.q-dot{flex:1;height:6px;border-radius:3px;background:#e5e7eb;transition:.3s}
+.q-dot.done{background:var(--g)}
+.q-dot.active{background:var(--yellow)}
+.question-card{background:var(--white);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);margin-bottom:20px}
+.q-num{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px}
+.q-text{font-size:19px;font-weight:700;line-height:1.4}
+.options{display:grid;gap:10px}
+.option{background:var(--white);border:2px solid #e5e7eb;border-radius:10px;padding:14px 18px;cursor:pointer;font-family:inherit;font-size:15px;font-weight:500;text-align:left;transition:.2s;line-height:1.4}
+.option:hover:not(:disabled){border-color:var(--g);background:var(--gl)}
+.option.correct{border-color:#4caf50;background:#f1faf1;color:#2e7d32}
+.option.wrong{border-color:var(--red);background:var(--rdl);color:var(--red)}
+.option:disabled{cursor:default}
+.q-explain{background:#fffbf0;border:1px solid #ffe082;border-radius:10px;padding:14px 18px;font-size:14px;color:#6d4c00;line-height:1.6;margin-top:16px;display:none}
+.q-explain.show{display:block;animation:fadeIn .3s}
+
+/* STEP 5 — SUSTAIN / AUDIT */
+.audit-header{background:var(--white);border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow);margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.audit-header .ah-icon{font-size:40px}
+.audit-list{display:flex;flex-direction:column;gap:10px}
+.audit-item{background:var(--white);border:1px solid #e5e7eb;border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;transition:.2s}
+.audit-item.pass{border-color:#4caf50;background:#f1faf1}
+.audit-item.fail{border-color:var(--red);background:var(--rdl)}
+.ai-num{font-size:13px;font-weight:800;color:var(--muted);width:24px;flex-shrink:0}
+.ai-text{flex:1;font-size:15px;line-height:1.4}
+.ai-btns{display:flex;gap:8px}
+.ai-btn{border:none;border-radius:8px;padding:8px 14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:.2s}
+.ai-btn-pass{background:#e8f5ee;color:#2e7d32}
+.ai-btn-pass:hover,.ai-btn-pass.active{background:#4caf50;color:#fff}
+.ai-btn-fail{background:#ffebee;color:var(--red)}
+.ai-btn-fail:hover,.ai-btn-fail.active{background:var(--red);color:#fff}
+
+/* RESULT / STEP COMPLETE */
+.step-result{background:var(--white);border-radius:20px;box-shadow:var(--shadow);padding:40px;text-align:center}
+.step-result .sr-score{font-size:72px;font-weight:800;color:var(--g);line-height:1}
+.step-result .sr-label{color:var(--muted);font-size:16px;margin:8px 0 24px}
+.step-result h3{font-size:24px;font-weight:800;margin-bottom:12px}
+.step-result p{color:var(--muted);margin-bottom:32px;font-size:16px}
+
+/* COMPLETION SCREEN */
+.completion{text-align:center;padding:20px 0}
+.certificate{background:var(--white);border:3px solid var(--g);border-radius:20px;padding:40px;max-width:560px;margin:0 auto 32px;box-shadow:var(--shadow)}
+.cert-badge{font-size:72px;margin-bottom:16px}
+.cert-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--g);margin-bottom:8px}
+.cert-name{font-size:28px;font-weight:800;margin-bottom:8px}
+.cert-sub{color:var(--muted);font-size:15px;margin-bottom:24px}
+.cert-score{font-size:56px;font-weight:800;color:var(--g);margin-bottom:4px}
+.cert-scores-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:24px 0}
+.cs-cell{background:var(--gl);border-radius:8px;padding:10px 4px;font-size:12px}
+.cs-cell strong{display:block;font-size:20px;font-weight:800;color:var(--g)}
+
+/* PROGRESS BAR */
+.g-progress{height:4px;background:#e5e7eb;border-radius:2px;margin-bottom:28px;overflow:hidden}
+.g-progress-fill{height:100%;background:var(--g);border-radius:2px;transition:width .5s}
+
+/* ANIMATIONS */
+@keyframes flashOk{0%,100%{background:var(--white)}50%{background:#d4edda;border-color:#4caf50}}
+@keyframes flashErr{0%,100%{background:var(--white)}50%{background:#ffd6d6;border-color:var(--red)}}
+@keyframes cleanPop{0%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.5}100%{transform:scale(0);opacity:0}}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes confettiFall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes slideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.anim-slide{animation:slideIn .4s ease}
+</style>
+</head>
+<body>
+
+<header class="g-header">
+  <div class="g-header-inner">
+    <a href="index.html" class="g-logo"><span>⬡</span>Lean<strong>Pro</strong></a>
+    <div class="g-steps" id="gSteps"></div>
+    <div class="g-score-box">Очки: <span id="totalScore">0</span></div>
+  </div>
+</header>
+
+<div class="g-wrap" id="gWrap"></div>
+<div class="g-feedback" id="gFeedback"></div>
+
+<script>
+// =========================================================
+// DATA
+// =========================================================
+const STEP_META = [
+  { num:1, code:'sort',      icon:'🗂️', name:'Сортировка',       en:'Sort',        principle:'Оставь только нужное — убери всё лишнее с рабочего места.' },
+  { num:2, code:'order',     icon:'📐', name:'Систематизация',    en:'Set in Order', principle:'Место для всего и всё на своём месте.' },
+  { num:3, code:'shine',     icon:'✨', name:'Уборка',            en:'Shine',        principle:'Чистое рабочее место — залог качества и безопасности.' },
+  { num:4, code:'standard',  icon:'📏', name:'Стандартизация',    en:'Standardize',  principle:'Закрепи лучшие практики в чётких стандартах.' },
+  { num:5, code:'sustain',   icon:'🔁', name:'Совершенствование', en:'Sustain',      principle:'Поддерживай и улучшай культуру порядка каждый день.' },
+];
+
+const SORT_ITEMS = [
+  {id:'w1', e:'🔧', n:'Гаечный ключ',    keep:true,  r:'Рабочий инструмент — необходим'},
+  {id:'w2', e:'🔨', n:'Молоток',          keep:true,  r:'Рабочий инструмент — необходим'},
+  {id:'w3', e:'📰', n:'Газеты 2020 г.',   keep:false, r:'Устаревшие материалы — лишние'},
+  {id:'w4', e:'☕', n:'Кружка кофе',      keep:false, r:'Не относится к работе — убрать'},
+  {id:'w5', e:'🧯', n:'Огнетушитель',     keep:true,  r:'Средство безопасности — оставить'},
+  {id:'w6', e:'📦', n:'Сломанный ящик',   keep:false, r:'Повреждённый предмет — убрать'},
+  {id:'w7', e:'✏️', n:'Маркер',           keep:true,  r:'Нужен для разметки — оставить'},
+  {id:'w8', e:'🔩', n:'Болты и гайки',    keep:true,  r:'Расходные материалы — оставить'},
+  {id:'w9', e:'📋', n:'Документы 2018 г.',keep:false, r:'Устаревшие документы — убрать'},
+  {id:'w0', e:'🧤', n:'Защитные перчатки',keep:true,  r:'СИЗ обязательны — оставить'},
+];
+
+const ORDER_ITEMS = [
+  {id:'o1', e:'🔧', n:'Гаечный ключ',  zone:'tools'},
+  {id:'o2', e:'🪛', n:'Отвёртка',      zone:'tools'},
+  {id:'o3', e:'⛑️', n:'Каска',          zone:'safety'},
+  {id:'o4', e:'🧤', n:'Перчатки',      zone:'safety'},
+  {id:'o5', e:'🧱', n:'Сырьё',         zone:'materials'},
+  {id:'o6', e:'📖', n:'Инструкция',    zone:'docs'},
+];
+const ORDER_ZONES = [
+  {id:'tools',     e:'🔧', n:'Инструменты'},
+  {id:'safety',    e:'🦺', n:'Безопасность'},
+  {id:'materials', e:'📦', n:'Материалы'},
+  {id:'docs',      e:'📚', n:'Документация'},
+];
+
+const DIRT_POSITIONS = [
+  {x:8,  y:15}, {x:25, y:42}, {x:45, y:18}, {x:60, y:38},
+  {x:18, y:62}, {x:72, y:55}, {x:35, y:72}, {x:55, y:65},
+  {x:80, y:20}, {x:12, y:80}, {x:50, y:45}, {x:30, y:28},
+];
+const DIRT_EMOJIS = ['💩','🟤','🦠','🌫️','💧','🗑️'];
+
+const QUIZ = [
+  {q:'Где должен висеть план эвакуации?',
+   opts:['На рабочем столе','У выхода на видном месте','В ящике стола','Только в электронном виде'],
+   ok:1, ex:'По нормам пожарной безопасности план эвакуации размещается у выходов и на видных местах.'},
+  {q:'Как часто нужно проводить уборку рабочего места по 5S?',
+   opts:['Раз в неделю','Раз в месяц','Ежедневно в конце смены','Только при проверках'],
+   ok:2, ex:'Ежедневная уборка (Shine) — ключевой элемент 5S. Формирует привычку и позволяет сразу замечать отклонения.'},
+  {q:'Что такое «красная метка» в системе 5S?',
+   opts:['Ошибка в документации','Метод маркировки предметов под вопросом','Сигнал аварийной остановки','Штраф за нарушение'],
+   ok:1, ex:'Красная метка (Red Tag) маркирует предметы, чья необходимость сомнительна. Их изолируют и оценивают.'},
+  {q:'Что означает «визуальный контроль» в 5S?',
+   opts:['Видеонаблюдение за сотрудниками','Разметка, позволяющая сразу видеть отклонения','Ежемесячный аудит','Контроль качества продукции'],
+   ok:1, ex:'Визуальный контроль — цветовые коды, разметки, подписи. Любой сотрудник сразу видит норму и отклонение.'},
+  {q:'Что является главным результатом внедрения 5S?',
+   opts:['Сокращение числа сотрудников','Культура порядка и непрерывного улучшения','Рост скорости на 50%','Автоматизация всех процессов'],
+   ok:1, ex:'5S — культурная трансформация. Порядок на рабочем месте создаёт основу для всех других улучшений.'},
+];
+
+const AUDIT = [
+  'На рабочих местах нет лишних предметов',
+  'Все инструменты находятся на обозначенных местах',
+  'Зоны прохода свободны и обозначены разметкой',
+  'Рабочие поверхности чистые, без следов масла',
+  'Документация актуальна и размещена доступно',
+  'Стандарты работы вывешены на видном месте',
+  'Мусорные корзины не переполнены',
+  'Огнетушители на месте и не просрочены',
+  'Персонал знает стандарты 5S',
+  'Последний аудит проведён не более 30 дней назад',
+];
+
+// =========================================================
+// STATE
+// =========================================================
+const st = {
+  phase: 'intro',   // 'intro' | 'play' | 'result'
+  step: 0,          // 0..4
+  scores: [0,0,0,0,0],
+  // step 1
+  s1selected: null,
+  s1placed: {},     // id -> 'keep'|'remove'
+  // step 2
+  s2selected: null,
+  s2placed: {},     // id -> zoneId
+  // step 3
+  s3dirty: new Set(DIRT_POSITIONS.map((_,i)=>i)),
+  s3timeLeft: 60,
+  s3timerID: null,
+  // step 4
+  s4q: 0,
+  s4answered: false,
+  s4score: 0,
+  // step 5
+  s5answers: {},    // idx -> 'pass'|'fail'
+};
+
+function totalScore(){
+  return st.scores.reduce((a,b)=>a+b,0);
+}
+
+// =========================================================
+// UTILS
+// =========================================================
+const wrap = () => document.getElementById('gWrap');
+
+function feedback(msg, type='ok'){
+  const el = document.getElementById('gFeedback');
+  el.textContent = msg;
+  el.className = `g-feedback ${type} show`;
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>el.classList.remove('show'), 2800);
+}
+
+function flash(el, cls){
+  el.classList.remove('flash-ok','flash-err');
+  void el.offsetWidth;
+  el.classList.add(cls);
+  setTimeout(()=>el.classList.remove(cls), 600);
+}
+
+function updateHeader(){
+  const pips = document.getElementById('gSteps');
+  if(!pips) return;
+  pips.innerHTML = STEP_META.map((m,i)=>{
+    let cls = '';
+    if(i < st.step) cls='done';
+    else if(i === st.step) cls='active';
+    return `<div class="step-pip ${cls}" title="${m.name}">${i<st.step?'✓':m.num}</div>`;
+  }).join('');
+  document.getElementById('totalScore').textContent = totalScore();
+}
+
+function stepProgress(cur, total){
+  const pct = (cur/total)*100;
+  return `<div class="g-progress"><div class="g-progress-fill" style="width:${pct}%"></div></div>`;
+}
+
+// =========================================================
+// RENDER ROUTER
+// =========================================================
+function render(){
+  updateHeader();
+  if(st.phase === 'intro') renderIntro();
+  else if(st.phase === 'play') renderPlay();
+  else if(st.phase === 'result') renderResult();
+  else if(st.phase === 'done') renderDone();
+}
+
+// =========================================================
+// INTRO
+// =========================================================
+function renderIntro(){
+  const m = STEP_META[st.step];
+  wrap().innerHTML = `
+  <div class="intro-card anim-slide">
+    <div class="big-icon">${m.icon}</div>
+    <div class="step-tag">Шаг ${m.num} из 5 — ${m.en}</div>
+    <h2>${m.name}</h2>
+    <div class="principle">"${m.principle}"</div>
+    <p>${introDesc(st.step)}</p>
+    <button class="btn btn-primary" onclick="startPlay()">▶ Начать упражнение</button>
+  </div>`;
+}
+
+function introDesc(s){
+  return [
+    'Перед тобой разбросанные предметы на рабочем месте. Реши, что <strong>оставить</strong>, а что <strong>убрать</strong>. Нажми на предмет, затем нажми на нужную корзину.',
+    'Предметы лежат вперемешку. Распредели каждый по его <strong>зоне хранения</strong>. Нажми предмет — потом нажми правильную зону.',
+    'На рабочем месте есть загрязнения. <strong>Нажимай на каждое пятно</strong>, чтобы его убрать. Успей очистить всё за 60 секунд!',
+    'Проверь свои знания стандартов 5S. <strong>5 вопросов</strong> — выбери правильный ответ.',
+    'Проведи <strong>аудит</strong> рабочего места. Для каждого пункта отметь: выполнено или нет.',
+  ][s];
+}
+
+function startPlay(){
+  st.phase = 'play';
+  render();
+}
+
+// =========================================================
+// PLAY
+// =========================================================
+function renderPlay(){
+  [renderSort, renderOrder, renderShine, renderQuiz, renderAudit][st.step]();
+}
+
+// ---- STEP 1: SORT ----
+function renderSort(){
+  const total = SORT_ITEMS.length;
+  const done = Object.keys(st.s1placed).length;
+  wrap().innerHTML = `
+  ${stepProgress(done, total)}
+  <p style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:14px">
+    Отсортировано: <strong>${done}/${total}</strong> — выбери предмет, потом корзину
+  </p>
+  <div class="s1-workspace" id="s1items">
+    ${SORT_ITEMS.map(it=>{
+      const placed = st.s1placed[it.id];
+      const sel = st.s1selected === it.id;
+      return `<div class="item-card ${placed?'placed':''} ${sel?'selected':''}"
+               data-id="${it.id}" onclick="s1SelectItem('${it.id}')">
+        <div class="ic">${it.e}</div>
+        <div class="nm">${it.n}</div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div class="s1-bins">
+    <div class="bin bin-keep" onclick="s1PlaceInBin('keep')">
+      <div class="bin-icon">✅</div>
+      <div class="bin-name">Оставить</div>
+      <div class="bin-count">${Object.values(st.s1placed).filter(v=>v==='keep').length} предметов</div>
+    </div>
+    <div class="bin bin-remove" onclick="s1PlaceInBin('remove')">
+      <div class="bin-icon">🗑️</div>
+      <div class="bin-name">Убрать</div>
+      <div class="bin-count">${Object.values(st.s1placed).filter(v=>v==='remove').length} предметов</div>
+    </div>
+  </div>`;
+}
+
+function s1SelectItem(id){
+  if(st.s1placed[id]) return;
+  st.s1selected = (st.s1selected === id) ? null : id;
+  renderSort();
+}
+
+function s1PlaceInBin(bin){
+  if(!st.s1selected) { feedback('Сначала выбери предмет!','err'); return; }
+  const item = SORT_ITEMS.find(i=>i.id===st.s1selected);
+  const correct = (bin==='keep') === item.keep;
+  st.s1placed[st.s1selected] = bin;
+  st.s1selected = null;
+
+  const pts = correct ? 10 : 0;
+  if(correct) feedback(`✓ Верно! ${item.r}`,'ok');
+  else        feedback(`✗ Неверно. ${item.r}`,'err');
+
+  renderSort();
+
+  if(Object.keys(st.s1placed).length === SORT_ITEMS.length){
+    const score = SORT_ITEMS.filter(i=>{
+      const p = st.s1placed[i.id];
+      return (p==='keep'&&i.keep)||(p==='remove'&&!i.keep);
+    }).length * 10;
+    st.scores[0] = score;
+    setTimeout(()=>{ st.phase='result'; render(); }, 800);
+  }
+}
+
+// ---- STEP 2: ORDER ----
+function renderOrder(){
+  const total = ORDER_ITEMS.length;
+  const done = Object.keys(st.s2placed).length;
+  wrap().innerHTML = `
+  ${stepProgress(done, total)}
+  <p style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:10px">
+    Размещено: <strong>${done}/${total}</strong> — выбери предмет, потом зону
+  </p>
+  <div class="s2-items" id="s2items">
+    ${ORDER_ITEMS.filter(i=>!st.s2placed[i.id]).map(it=>`
+      <div class="item-card ${st.s2selected===it.id?'selected':''}"
+           data-id="${it.id}" onclick="s2SelectItem('${it.id}')"
+           style="width:110px">
+        <div class="ic">${it.e}</div>
+        <div class="nm">${it.n}</div>
+      </div>`).join('')}
+    ${ORDER_ITEMS.filter(i=>!st.s2placed[i.id]).length===0?'<span style="color:var(--muted);font-size:14px">Все предметы размещены ✓</span>':''}
+  </div>
+  <div class="s2-zones" id="s2zones">
+    ${ORDER_ZONES.map(z=>`
+      <div class="zone ${st.s2selected?'selected-target':''}"
+           id="zone-${z.id}" onclick="s2PlaceInZone('${z.id}')">
+        <div class="z-icon">${z.e}</div>
+        <div class="z-name">${z.n}</div>
+        <div class="z-items">
+          ${ORDER_ITEMS.filter(i=>st.s2placed[i.id]===z.id)
+            .map(i=>`<span class="zone-chip">${i.e} ${i.n}</span>`).join('')}
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+
+function s2SelectItem(id){
+  if(st.s2placed[id]) return;
+  st.s2selected = (st.s2selected===id) ? null : id;
+  renderOrder();
+}
+
+function s2PlaceInZone(zoneId){
+  if(!st.s2selected){ feedback('Сначала выбери предмет!','err'); return; }
+  const item = ORDER_ITEMS.find(i=>i.id===st.s2selected);
+  const correct = item.zone === zoneId;
+  if(correct){
+    st.s2placed[st.s2selected] = zoneId;
+    feedback(`✓ Верно! «${item.n}» → ${ORDER_ZONES.find(z=>z.id===zoneId).n}`,'ok');
+    const zEl = document.getElementById(`zone-${zoneId}`);
+    if(zEl) flash(zEl,'flash-ok');
+  } else {
+    feedback(`✗ Неверно! Подумай ещё...`,'err');
+    const zEl = document.getElementById(`zone-${zoneId}`);
+    if(zEl) flash(zEl,'flash-err');
+  }
+  st.s2selected = null;
+  renderOrder();
+
+  if(Object.keys(st.s2placed).length === ORDER_ITEMS.length){
+    st.scores[1] = 100;
+    setTimeout(()=>{ st.phase='result'; render(); }, 600);
+  }
+}
+
+// ---- STEP 3: SHINE ----
+function renderShine(){
+  const remaining = st.s3dirty.size;
+  const totalDirt = DIRT_POSITIONS.length;
+  const pct = (st.s3timeLeft/60)*100;
+  const urgent = st.s3timeLeft <= 15;
+  wrap().innerHTML = `
+  ${stepProgress(totalDirt-remaining, totalDirt)}
+  <div class="s3-meta">
+    <div class="s3-timer ${urgent?'urgent':''}">⏱ ${st.s3timeLeft}с</div>
+    <div class="s3-counter">Осталось пятен: ${remaining}</div>
+  </div>
+  <div class="timer-bar-wrap">
+    <div class="timer-bar ${urgent?'urgent':''}" id="timerBar" style="width:${pct}%"></div>
+  </div>
+  <div class="workshop" id="workshop">
+    <div class="workshop-label">Рабочий участок</div>
+    <div class="shelf"></div>
+    <div class="machine"></div>
+    <div class="workbench"></div>
+    ${DIRT_POSITIONS.map((p,i)=>st.s3dirty.has(i)?`
+      <div class="dirt" id="dirt-${i}"
+           style="left:${p.x}%;top:${p.y}%"
+           onclick="cleanDirt(${i})">
+        ${DIRT_EMOJIS[i%DIRT_EMOJIS.length]}
+      </div>`:'').join('')}
+  </div>
+  <p style="text-align:center;color:var(--muted);font-size:14px;margin-top:12px">
+    👆 Нажимай на загрязнения, чтобы убрать их!
+  </p>`;
+
+  if(!st.s3timerID && st.s3timeLeft > 0 && remaining > 0){
+    st.s3timerID = setInterval(tickShine, 1000);
+  }
+}
+
+function tickShine(){
+  st.s3timeLeft--;
+  const bar = document.getElementById('timerBar');
+  const timerEl = document.querySelector('.s3-timer');
+  if(bar) bar.style.width = (st.s3timeLeft/60*100)+'%';
+  if(bar && st.s3timeLeft<=15){ bar.classList.add('urgent'); }
+  if(timerEl) timerEl.textContent = `⏱ ${st.s3timeLeft}с`;
+  if(timerEl && st.s3timeLeft<=15) timerEl.classList.add('urgent');
+
+  if(st.s3timeLeft <= 0 || st.s3dirty.size === 0){
+    clearInterval(st.s3timerID);
+    st.s3timerID = null;
+    finishShine();
+  }
+}
+
+function cleanDirt(idx){
+  if(!st.s3dirty.has(idx)) return;
+  const el = document.getElementById(`dirt-${idx}`);
+  if(el){
+    el.classList.add('cleaned');
+    setTimeout(()=>el.remove(), 400);
+  }
+  st.s3dirty.delete(idx);
+  if(st.s3dirty.size === 0){
+    clearInterval(st.s3timerID);
+    st.s3timerID = null;
+    feedback('🎉 Всё чисто!','ok');
+    setTimeout(finishShine, 700);
+  } else {
+    // Update counter
+    const counter = document.querySelector('.s3-counter');
+    if(counter) counter.textContent = `Осталось пятен: ${st.s3dirty.size}`;
+  }
+}
+
+function finishShine(){
+  const cleaned = DIRT_POSITIONS.length - st.s3dirty.size;
+  const timeBonus = Math.max(0, st.s3timeLeft * 0.5);
+  const score = Math.min(100, Math.round(cleaned/DIRT_POSITIONS.length*80 + timeBonus));
+  st.scores[2] = score;
+  st.phase = 'result';
+  render();
+}
+
+// ---- STEP 4: QUIZ ----
+function renderQuiz(){
+  const q = QUIZ[st.s4q];
+  wrap().innerHTML = `
+  <div class="quiz-progress">
+    ${QUIZ.map((_,i)=>`<div class="q-dot ${i<st.s4q?'done':i===st.s4q?'active':''}"></div>`).join('')}
+  </div>
+  <div class="question-card">
+    <div class="q-num">Вопрос ${st.s4q+1} из ${QUIZ.length}</div>
+    <div class="q-text">${q.q}</div>
+  </div>
+  <div class="options" id="opts">
+    ${q.opts.map((o,i)=>`
+      <button class="option" onclick="answerQuiz(${i})" ${st.s4answered?'disabled':''}>${o}</button>
+    `).join('')}
+  </div>
+  <div class="q-explain ${st.s4answered?'show':''}" id="qExplain">${q.ex}</div>
+  ${st.s4answered?`<br><button class="btn btn-primary" onclick="nextQuiz()">${st.s4q<QUIZ.length-1?'Следующий вопрос →':'Завершить тест'}</button>`:''}`;
+}
+
+function answerQuiz(idx){
+  if(st.s4answered) return;
+  st.s4answered = true;
+  const q = QUIZ[st.s4q];
+  const opts = document.querySelectorAll('.option');
+  opts[q.ok].classList.add('correct');
+  if(idx !== q.ok) opts[idx].classList.add('wrong');
+  opts.forEach(o=>o.disabled=true);
+  document.getElementById('qExplain').classList.add('show');
+  if(idx === q.ok){ st.s4score += 20; feedback('✓ Правильно!','ok'); }
+  else             { feedback('✗ Неверно. Смотри объяснение ниже.','err'); }
+  // show next button
+  const el = document.createElement('div');
+  el.style.marginTop='16px';
+  el.innerHTML=`<button class="btn btn-primary" onclick="nextQuiz()">${st.s4q<QUIZ.length-1?'Следующий вопрос →':'Завершить тест'}</button>`;
+  wrap().appendChild(el);
+}
+
+function nextQuiz(){
+  st.s4q++;
+  st.s4answered = false;
+  if(st.s4q >= QUIZ.length){
+    st.scores[3] = st.s4score;
+    st.phase='result'; render();
+  } else {
+    renderQuiz();
+  }
+}
+
+// ---- STEP 5: AUDIT ----
+function renderAudit(){
+  const answered = Object.keys(st.s5answers).length;
+  const total = AUDIT.length;
+  wrap().innerHTML = `
+  ${stepProgress(answered, total)}
+  <div class="audit-header">
+    <div class="ah-icon">📋</div>
+    <div>
+      <strong style="font-size:18px">Аудит рабочего места</strong><br>
+      <span style="color:var(--muted);font-size:14px">Отметь каждый пункт как выполненный или нет</span>
+    </div>
+  </div>
+  <div class="audit-list">
+    ${AUDIT.map((text,i)=>{
+      const ans = st.s5answers[i];
+      return `<div class="audit-item ${ans||''}" id="ai-${i}">
+        <div class="ai-num">${i+1}</div>
+        <div class="ai-text">${text}</div>
+        <div class="ai-btns">
+          <button class="ai-btn ai-btn-pass ${ans==='pass'?'active':''}" onclick="auditAnswer(${i},'pass')">✓ Да</button>
+          <button class="ai-btn ai-btn-fail ${ans==='fail'?'active':''}" onclick="auditAnswer(${i},'fail')">✗ Нет</button>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+  <br>
+  <button class="btn btn-primary btn-full" onclick="finishAudit()"
+    ${answered<total?'disabled':''}>
+    Завершить аудит →
+  </button>`;
+}
+
+function auditAnswer(idx, val){
+  st.s5answers[idx] = val;
+  renderAudit();
+}
+
+function finishAudit(){
+  const passes = Object.values(st.s5answers).filter(v=>v==='pass').length;
+  st.scores[4] = passes * 10;
+  st.phase = 'result';
+  render();
+}
+
+// =========================================================
+// RESULT (per step)
+// =========================================================
+const STEP_TIPS = [
+  'При сортировке используй правило «красной метки»: если не уверен — прикрепи метку и убери в зону ожидания.',
+  'Размечай места хранения контурами и подписями. Любой сотрудник должен знать, где что лежит.',
+  'Уборка — это диагностика. Во время уборки ты замечаешь утечки, износ и неисправности.',
+  'Стандарты должны быть наглядными и краткими. Разместите их прямо на рабочих местах.',
+  'Регулярный аудит 5S помогает поддерживать культуру и вовлекать команду.',
+];
+
+function renderResult(){
+  const s = st.scores[st.step];
+  const grade = s>=80?'Отлично! 🎉':s>=60?'Хорошо! 👍':'Можно лучше 💪';
+  const isLast = st.step === 4;
+  wrap().innerHTML = `
+  <div class="step-result anim-slide">
+    <div class="sr-score">${s}</div>
+    <div class="sr-label">из 100 баллов</div>
+    <h3>${grade}</h3>
+    <p>💡 <em>${STEP_TIPS[st.step]}</em></p>
+    <button class="btn btn-primary" onclick="nextStep()">
+      ${isLast ? '🏆 Получить сертификат' : `Следующий шаг: ${STEP_META[st.step+1].name} →`}
+    </button>
+  </div>`;
+}
+
+function nextStep(){
+  if(st.step < 4){
+    st.step++;
+    st.phase='intro';
+    render();
+  } else {
+    st.phase='done';
+    render();
+  }
+}
+
+// =========================================================
+// COMPLETION
+// =========================================================
+function renderDone(){
+  const avg = Math.round(totalScore()/5);
+  const cert = avg>=80?'🥇 Сертификат Lean-Практика':avg>=60?'🥈 Сертификат 5S':' 📜 Сертификат участника';
+  spawnConfetti();
+  wrap().innerHTML = `
+  <div class="completion anim-slide">
+    <div class="certificate">
+      <div class="cert-badge">🏆</div>
+      <div class="cert-title">LeanPro — 5S Тренажёр</div>
+      <div class="cert-name">${cert}</div>
+      <div class="cert-sub">Успешно пройдены все 5 шагов системы 5S</div>
+      <div class="cert-score">${avg}<span style="font-size:24px">/100</span></div>
+      <div style="color:var(--muted);font-size:14px;margin-bottom:16px">Средний балл</div>
+      <div class="cert-scores-grid">
+        ${STEP_META.map((m,i)=>`
+          <div class="cs-cell">
+            <div style="font-size:18px">${m.icon}</div>
+            <strong>${st.scores[i]}</strong>
+            <div style="font-size:10px;color:var(--muted)">${m.name}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="index.html" class="btn btn-primary">← На сайт LeanPro</a>
+      <button class="btn btn-secondary" onclick="resetGame()">🔄 Пройти ещё раз</button>
+    </div>
+    <p style="margin-top:24px;color:var(--muted);font-size:14px">
+      Хочешь узнать больше? Запишись на полный курс <strong>«Система 5S на производстве»</strong>
+    </p>
+  </div>`;
+}
+
+function resetGame(){
+  Object.assign(st,{
+    phase:'intro', step:0, scores:[0,0,0,0,0],
+    s1selected:null, s1placed:{},
+    s2selected:null, s2placed:{},
+    s3dirty:new Set(DIRT_POSITIONS.map((_,i)=>i)),
+    s3timeLeft:60, s3timerID:null,
+    s4q:0, s4answered:false, s4score:0,
+    s5answers:{},
+  });
+  render();
+}
+
+// =========================================================
+// CONFETTI
+// =========================================================
+function spawnConfetti(){
+  const colors=['#1a6b3c','#f5a623','#2196f3','#e91e63','#4caf50','#ff9800'];
+  for(let i=0;i<80;i++){
+    const el=document.createElement('div');
+    el.style.cssText=`position:fixed;top:-10px;left:${Math.random()*100}vw;
+      width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:${Math.random()>.5?'50%':'2px'};
+      animation:confettiFall ${1.5+Math.random()*2}s ${Math.random()*1}s ease-in forwards;
+      z-index:9999;pointer-events:none`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 4000);
+  }
+}
+
+// =========================================================
+// BOOT
+// =========================================================
+render();
+</script>
+</body>
+</html>
