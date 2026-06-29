@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VSM Конструктор — Карта потока создания ценности | LeanPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #1a6b3c; --primary-dark: #134d2c; --primary-light: #e8f5ee;
+      --accent: #f5a623; --danger: #e74c3c; --warning: #e67e22;
+      --text: #1a1a2e; --text-muted: #6b7280;
+      --bg: #ffffff; --bg-alt: #f8faf9; --border: #e5e7eb;
+      --radius: 12px; --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    body { font-family: 'Inter', sans-serif; color: var(--text); background: var(--bg); font-size: 15px; line-height: 1.6; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+
+    /* HEADER */
+    .header { background: rgba(255,255,255,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+    .header__inner { display: flex; align-items: center; gap: 20px; height: 64px; }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-size: 20px; font-weight: 700; }
+    .logo__icon { color: var(--primary); font-size: 24px; }
+    .logo__text strong { color: var(--primary); }
+    .back-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 500; padding: 6px 14px; border: 1px solid var(--border); border-radius: 8px; transition: .2s; }
+    .back-btn:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-light); }
+
+    /* HERO */
+    .vsm-hero { background: linear-gradient(135deg, #f0faf5 0%, #fff 60%); border-bottom: 1px solid var(--border); padding: 40px 0 32px; }
+    .vsm-hero h1 { font-size: clamp(22px, 4vw, 36px); font-weight: 800; margin-bottom: 8px; }
+    .vsm-hero p { color: var(--text-muted); font-size: 16px; }
+    .vsm-hero__tag { display: inline-block; background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 20px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 12px; }
+
+    /* FORM LAYOUT */
+    .vsm-form-section { padding: 32px 0; }
+    .form-panels { display: grid; grid-template-columns: 340px 1fr; gap: 24px; align-items: start; }
+    .panel { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); }
+    .panel h2 { font-size: 17px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .panel h2 .tag { background: var(--primary-light); color: var(--primary); font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 20px; }
+
+    /* FORM GROUPS */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .form-group input, .form-group select {
+      font-family: inherit; font-size: 15px; color: var(--text);
+      background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 14px; outline: none; transition: .2s; width: 100%;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: #fff; }
+
+    /* TAKT BADGE */
+    .takt-badge { display: flex; align-items: center; gap: 10px; background: var(--primary-light); border: 1px solid rgba(26,107,60,.2); border-radius: 8px; padding: 10px 14px; margin-top: 16px; font-size: 13px; }
+    .takt-badge strong { color: var(--primary); font-size: 16px; }
+
+    /* OPS TABLE PANEL */
+    .ops-panel { display: flex; flex-direction: column; gap: 0; }
+    .ops-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .btn-add { display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: #fff; font-family: inherit; font-size: 13px; font-weight: 600; padding: 8px 18px; border: none; border-radius: 8px; cursor: pointer; transition: .2s; }
+    .btn-add:hover { background: var(--primary-dark); }
+
+    .ops-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+    table.ops-table { width: 100%; border-collapse: collapse; min-width: 820px; font-size: 13px; }
+    .ops-table thead th { background: var(--bg-alt); padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .ops-table tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+    .ops-table tbody tr:last-child { border-bottom: none; }
+    .ops-table tbody tr:hover { background: #fafffe; }
+    .ops-table td { padding: 8px 10px; vertical-align: middle; }
+    .ops-table td.num-cell { text-align: center; font-weight: 700; color: var(--text-muted); width: 36px; }
+    .inp { font-family: inherit; font-size: 13px; color: var(--text); background: var(--bg-alt); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; outline: none; transition: .2s; width: 100%; }
+    .inp:focus { border-color: var(--primary); background: #fff; }
+    .inp-name { min-width: 130px; }
+    .inp-num { width: 76px; text-align: right; }
+    .inp-sm { width: 64px; }
+    .btn-remove { background: none; border: none; color: #ccc; font-size: 16px; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: .2s; }
+    .btn-remove:hover { background: #fef2f2; color: var(--danger); }
+
+    .fg-row { display: flex; align-items: center; gap: 16px; margin-top: 14px; padding: 12px 16px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; }
+    .fg-row label { font-size: 13px; font-weight: 600; white-space: nowrap; }
+    .fg-row input { width: 110px; }
+
+    /* GENERATE BUTTON */
+    .generate-row { display: flex; justify-content: center; padding: 32px 0 0; }
+    .btn-generate { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, var(--primary), #2e9e5e); color: #fff; font-family: inherit; font-size: 16px; font-weight: 700; padding: 16px 44px; border: none; border-radius: 10px; cursor: pointer; transition: .25s; box-shadow: 0 6px 24px rgba(26,107,60,.3); }
+    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(26,107,60,.4); }
+    .btn-generate:active { transform: translateY(0); }
+
+    /* RESULTS */
+    .vsm-results { padding: 0 0 60px; }
+    .results-divider { height: 4px; background: linear-gradient(90deg, var(--primary), #2e9e5e, var(--accent)); margin: 0 0 40px; border-radius: 2px; }
+
+    /* METRICS */
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 40px; }
+    .metric-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; border-left: 4px solid var(--border); }
+    .metric-card--red { border-left-color: var(--danger); }
+    .metric-card--green { border-left-color: var(--primary); }
+    .metric-card--orange { border-left-color: var(--warning); }
+    .metric-card__value { font-size: 26px; font-weight: 800; color: var(--text); line-height: 1.1; margin-bottom: 4px; }
+    .metric-card--red .metric-card__value { color: var(--danger); }
+    .metric-card--green .metric-card__value { color: var(--primary); }
+    .metric-card--orange .metric-card__value { color: var(--warning); }
+    .metric-card__label { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .metric-card__sub { font-size: 11px; color: var(--text-muted); }
+
+    /* MAP */
+    .map-block { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 32px; box-shadow: var(--shadow); }
+    .map-block h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .map-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: #f8faf9; }
+
+    /* RECOMMENDATIONS */
+    .recs-block { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); }
+    .recs-block h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+    .recs-list { display: flex; flex-direction: column; gap: 14px; }
+    .rec-card { display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px; border-radius: 10px; border-left: 4px solid var(--border); }
+    .rec-card--critical { background: #fef2f2; border-left-color: var(--danger); }
+    .rec-card--warning { background: #fffbeb; border-left-color: var(--warning); }
+    .rec-card--good { background: #f0faf5; border-left-color: var(--primary); }
+    .rec-card--future { background: #f0f4ff; border-left-color: #6366f1; }
+    .rec-card__icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+    .rec-card__content h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .rec-card__content p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+    /* PRINT */
+    @media print {
+      .header, .vsm-hero, .vsm-form-section, .generate-row, .back-btn { display: none !important; }
+      .vsm-results { display: block !important; }
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 960px) {
+      .form-panels { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .btn-generate { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="container header__inner">
+    <a href="index.html" class="logo">
+      <span class="logo__icon">⬡</span>
+      <span class="logo__text">Lean<strong>Pro</strong></span>
+    </a>
+    <a href="index.html" class="back-btn">← На главную</a>
+  </div>
+</header>
+
+<section class="vsm-hero">
+  <div class="container">
+    <div class="vsm-hero__tag">Инструмент VSM</div>
+    <h1>Карта потока создания ценности</h1>
+    <p>Введите данные по операциям — система построит карту текущего состояния, рассчитает Lead Time и предложит улучшения</p>
+  </div>
+</section>
+
+<section class="vsm-form-section">
+  <div class="container">
+    <div class="form-panels">
+
+      <!-- LEFT: General params -->
+      <div class="panel">
+        <h2>Общие параметры <span class="tag">Шаг 1</span></h2>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Наименование продукта / потока</label>
+            <input type="text" id="productName" value="Продукт А" />
+          </div>
+          <div class="form-group full">
+            <label>Суточный спрос, шт/день</label>
+            <input type="number" id="dailyDemand" value="100" min="1" oninput="updateTaktBadge()" />
+          </div>
+          <div class="form-group">
+            <label>Длит. смены, ч</label>
+            <input type="number" id="shiftHours" value="8" min="1" max="24" step="0.5" oninput="updateTaktBadge()" />
+          </div>
+          <div class="form-group">
+            <label>Смен в сутки</label>
+            <input type="number" id="shifts" value="1" min="1" max="3" oninput="updateTaktBadge()" />
+          </div>
+          <div class="form-group full">
+            <label>Запас ГП после последней операции, шт</label>
+            <input type="number" id="invFinal" value="50" min="0" />
+          </div>
+        </div>
+        <div class="takt-badge" id="taktBadge">
+          <span>⏱ Такт-тайм:</span>
+          <strong id="taktDisplay">288 сек</strong>
+          <span style="color:var(--text-muted);font-size:12px">(ритм потребителя)</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Operations -->
+      <div class="panel ops-panel">
+        <div class="ops-panel-head">
+          <h2>Операции потока <span class="tag">Шаг 2</span></h2>
+          <button class="btn-add" onclick="addOp()">+ Операция</button>
+        </div>
+
+        <div class="ops-scroll">
+          <table class="ops-table">
+            <thead>
+              <tr>
+                <th>№</th>
+                <th>Название операции</th>
+                <th>CT, сек</th>
+                <th>Опер.</th>
+                <th>Готовн, %</th>
+                <th>Запас ДО, шт</th>
+                <th>НЗП в оп., шт</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="opsBody"></tbody>
+          </table>
+        </div>
+
+        <div class="fg-row">
+          <span>📦</span>
+          <label>Запас ГП (готовая продукция) после последней операции, шт:</label>
+          <input type="number" id="invFinal2" value="50" min="0" class="inp inp-num" style="width:100px" />
+        </div>
+      </div>
+    </div>
+
+    <div class="generate-row">
+      <button class="btn-generate" onclick="generateVSM()">
+        📊 Построить карту VSM и рассчитать Lead Time
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section class="vsm-results" id="vsmResults" style="display:none">
+  <div class="results-divider"></div>
+  <div class="container">
+    <div class="metrics-grid" id="metricsGrid"></div>
+    <div class="map-block">
+      <h2>🗺 Карта текущего состояния <span style="font-size:13px;font-weight:500;color:var(--text-muted)" id="mapSubtitle"></span></h2>
+      <div class="map-scroll" id="mapScroll"></div>
+    </div>
+    <div class="recs-block" id="recsBlock"></div>
+  </div>
+</section>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+let ops = [
+  { name: 'Заготовка',   ct: 45,  ops: 1, uptime: 95, invBefore: 200, wip: 15 },
+  { name: 'Обработка',   ct: 90,  ops: 2, uptime: 85, invBefore: 350, wip: 30 },
+  { name: 'Сборка',      ct: 60,  ops: 1, uptime: 90, invBefore: 180, wip: 12 },
+  { name: 'Контроль',    ct: 35,  ops: 1, uptime: 98, invBefore: 120, wip:  8 },
+];
+
+// ============================================================
+// RENDER OPS TABLE
+// ============================================================
+function renderOps() {
+  const body = document.getElementById('opsBody');
+  body.innerHTML = ops.map((op, i) => `
+    <tr>
+      <td class="num-cell">${i + 1}</td>
+      <td><input class="inp inp-name" value="${esc(op.name)}" oninput="ops[${i}].name=this.value" /></td>
+      <td><input class="inp inp-num" type="number" value="${op.ct}"       min="1"   oninput="ops[${i}].ct=+this.value||1" /></td>
+      <td><input class="inp inp-sm"  type="number" value="${op.ops}"      min="1"   oninput="ops[${i}].ops=+this.value||1" /></td>
+      <td><input class="inp inp-sm"  type="number" value="${op.uptime}"   min="1" max="100" oninput="ops[${i}].uptime=+this.value||100" /></td>
+      <td><input class="inp inp-num" type="number" value="${op.invBefore}" min="0" oninput="ops[${i}].invBefore=+this.value" /></td>
+      <td><input class="inp inp-num" type="number" value="${op.wip}"      min="0"   oninput="ops[${i}].wip=+this.value" /></td>
+      <td><button class="btn-remove" onclick="removeOp(${i})" title="Удалить">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function esc(s) { return String(s).replace(/"/g, '&quot;'); }
+
+function addOp() {
+  ops.push({ name: `Операция ${ops.length + 1}`, ct: 60, ops: 1, uptime: 95, invBefore: 100, wip: 10 });
+  renderOps();
+}
+
+function removeOp(i) {
+  if (ops.length <= 1) { alert('Должна быть минимум одна операция'); return; }
+  ops.splice(i, 1);
+  renderOps();
+}
+
+// ============================================================
+// TAKT BADGE
+// ============================================================
+function updateTaktBadge() {
+  const tt = getTaktTime();
+  const el = document.getElementById('taktDisplay');
+  if (!el) return;
+  el.textContent = tt >= 60 ? `${(tt / 60).toFixed(1)} мин` : `${tt.toFixed(0)} сек`;
+}
+
+function getTaktTime() {
+  const demand = +document.getElementById('dailyDemand').value || 100;
+  const hours  = +document.getElementById('shiftHours').value  || 8;
+  const shifts = +document.getElementById('shifts').value      || 1;
+  return (hours * shifts * 3600) / demand;
+}
+
+// ============================================================
+// CALCULATIONS
+// ============================================================
+function calculate() {
+  const demand      = +document.getElementById('dailyDemand').value || 100;
+  const shiftHours  = +document.getElementById('shiftHours').value  || 8;
+  const numShifts   = +document.getElementById('shifts').value      || 1;
+  const invFinal    = +document.getElementById('invFinal2').value   || 0;
+  const productName = document.getElementById('productName').value  || 'Продукт';
+
+  const workSec  = shiftHours * numShifts * 3600;   // seconds per day
+  const taktTime = workSec / demand;                 // sec/unit
+
+  const segments = [];   // {type:'wait'|'process', sec, label, units?, days?}
+  let totalWait = 0, totalProcess = 0;
+
+  ops.forEach((op, i) => {
+    const waitSec = (op.invBefore + op.wip) * taktTime;
+    const qDays   = waitSec / workSec;
+    totalWait += waitSec;
+
+    const labelParts = [];
+    if (op.invBefore > 0) labelParts.push(`Запас: ${op.invBefore} шт`);
+    if (op.wip > 0)       labelParts.push(`НЗП: ${op.wip} шт`);
+
+    segments.push({
+      type: 'wait', sec: waitSec,
+      label: labelParts.join(' / ') || '—',
+      units: op.invBefore + op.wip, days: qDays, idx: i
+    });
+    segments.push({
+      type: 'process', sec: op.ct,
+      label: op.name, idx: i
+    });
+    totalProcess += op.ct;
+  });
+
+  // Finished goods
+  const fgSec  = invFinal * taktTime;
+  const fgDays = fgSec / workSec;
+  totalWait += fgSec;
+  segments.push({ type: 'wait', sec: fgSec, label: `ГП: ${invFinal} шт`, units: invFinal, days: fgDays, isFinal: true });
+
+  const leadTime = totalWait + totalProcess;
+  const pce      = leadTime > 0 ? (totalProcess / leadTime) * 100 : 0;
+  const maxCT    = Math.max(...ops.map(o => o.ct));
+  const bottleneck = ops.find(o => o.ct === maxCT) || ops[0];
+
+  return { productName, demand, workSec, taktTime, leadTime, totalWait, totalProcess, pce, segments, bottleneck, maxCT, invFinal };
+}
+
+// ============================================================
+// FORMAT HELPERS
+// ============================================================
+function fmtTime(sec, workSec) {
+  const d = sec / workSec;
+  if (d >= 1)    return `${d.toFixed(1)} дн`;
+  const h = sec / 3600;
+  if (h >= 1)    return `${h.toFixed(1)} ч`;
+  const m = sec / 60;
+  if (m >= 1)    return `${m.toFixed(0)} мин`;
+  return `${Math.round(sec)} сек`;
+}
+function fmtCT(sec) {
+  if (sec >= 60) return `${(sec/60).toFixed(1)} мин`;
+  return `${sec} сек`;
+}
+
+// ============================================================
+// SVG MAP
+// ============================================================
+function buildSVG(r) {
+  const N = ops.length;
+
+  // Layout constants
+  const PAD = 44, CY = 200;
+  const SW = 88, SH = 62;          // supplier/customer box
+  const PW = 162, PH = 94;         // process box
+  const IW = 84;                   // inventory column width
+  const ARR = 32;                  // arrow length
+  const TY = CY + PH / 2 + 56;    // timeline top  (≈339)
+  const TH = 52;                   // timeline bar height
+  const STEP = IW + ARR + PW + ARR;  // 84+32+162+32 = 310 per operation
+
+  const SVG_W = PAD + SW + ARR + N * STEP + IW + ARR + SW + PAD;
+  const SVG_H = TY + TH + 96;
+
+  const lines = [];
+  const p = (...args) => lines.push(...args);
+
+  p(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SVG_W} ${SVG_H}"
+       style="min-width:${SVG_W}px;height:${SVG_H}px;font-family:Inter,sans-serif;display:block">`);
+  p(`<rect width="${SVG_W}" height="${SVG_H}" fill="#f8faf9"/>`);
+
+  // Title
+  p(`<text x="${SVG_W/2}" y="26" text-anchor="middle" font-size="13" font-weight="800" fill="#1a1a2e">
+      Текущее состояние: ${esc(r.productName)}
+    </text>`);
+  p(`<text x="${SVG_W/2}" y="42" text-anchor="middle" font-size="10" fill="#888">
+      Спрос: ${r.demand} шт/день · Такт-тайм: ${fmtCT(r.taktTime)}
+    </text>`);
+
+  let x = PAD;
+
+  // ---- Supplier ----
+  p(box(x, CY - SH/2, SW, SH, '#e8f5ee', '#1a6b3c', 2));
+  p(txt(x + SW/2, CY - 10, 'ПОСТАВЩИК', 11, '#1a6b3c', 700, 'middle'));
+  p(txt(x + SW/2, CY + 8,  'сырьё',     10, '#555',    400, 'middle'));
+  x += SW;
+
+  // arrow supplier→first triangle
+  p(arrow(x, CY, ARR, '#555'));
+  x += ARR;
+
+  // ---- Operations ----
+  ops.forEach((op, i) => {
+    const inv   = op.invBefore + op.wip;
+    const days  = (inv * r.taktTime) / r.workSec;
+    const isBot = op === r.bottleneck;
+    const over  = op.ct > r.taktTime;
+
+    // Inventory triangle
+    p(triangle(x, CY, IW, op.invBefore, op.wip, days));
+    x += IW;
+
+    // Arrow
+    p(arrow(x, CY, ARR, '#555'));
+    x += ARR;
+
+    // Process box
+    p(processBox(x, CY, PW, PH, op, r.taktTime, isBot, over));
+    x += PW;
+
+    // Arrow to next
+    p(arrow(x, CY, ARR, '#555'));
+    x += ARR;
+  });
+
+  // ---- Final inventory (FG) ----
+  const fgDays = (r.invFinal * r.taktTime) / r.workSec;
+  p(triangle(x, CY, IW, r.invFinal, 0, fgDays, true));
+  x += IW;
+
+  // Arrow FG→customer
+  p(arrow(x, CY, ARR, '#555'));
+  x += ARR;
+
+  // ---- Customer ----
+  p(box(x, CY - SH/2, SW, SH, '#e8f5ee', '#1a6b3c', 2));
+  p(txt(x + SW/2, CY - 10, 'ПОТРЕБИТЕЛЬ', 11, '#1a6b3c', 700, 'middle'));
+  p(txt(x + SW/2, CY + 8,  `${r.demand} шт/день`, 10, '#555', 400, 'middle'));
+
+  // ---- Timeline ----
+  p(timeline(PAD, TY, SVG_W - 2*PAD, TH, r));
+
+  p('</svg>');
+  return lines.join('\n');
+}
+
+// SVG helpers
+function box(x, y, w, h, fill, stroke, sw=1.5) {
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+}
+function txt(x, y, t, fs, fill, fw=400, anchor='start') {
+  return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="${fs}" font-weight="${fw}" fill="${fill}">${esc(t)}</text>`;
+}
+function arrow(x, cy, len, col='#666') {
+  const x2 = x + len - 7;
+  return `<line x1="${x}" y1="${cy}" x2="${x2}" y2="${cy}" stroke="${col}" stroke-width="2"/>
+          <polygon points="${x2},${cy-5} ${x+len},${cy} ${x2},${cy+5}" fill="${col}"/>`;
+}
+
+function triangle(x, cy, colW, invBefore, wip, days, isFinal=false) {
+  const cx  = x + colW / 2;
+  const tH  = 46, tW = 54;
+  const ty  = cy - tH / 2 - 6;
+
+  const col = days > 5 ? '#dc2626' : days > 2 ? '#ea580c' : days > 0.5 ? '#d97706' : '#a3a3a3';
+
+  const pts = `${cx},${ty} ${cx-tW/2},${ty+tH} ${cx+tW/2},${ty+tH}`;
+  const total = invBefore + wip;
+
+  let s = `<polygon points="${pts}" fill="${col}" stroke="rgba(0,0,0,0.15)" stroke-width="1" opacity="0.85"/>`;
+  s += txt(cx, ty + tH*0.62, 'I', 17, '#fff', 800, 'middle');
+
+  // Units
+  s += txt(cx, ty + tH + 14, `${total} шт`, 10, '#1a1a2e', 700, 'middle');
+  if (wip > 0 && !isFinal) {
+    s += txt(cx, ty + tH + 26, `(НЗП:${wip})`, 9, '#888', 400, 'middle');
+  }
+  // Days
+  const dLabel = days > 0 ? (days >= 1 ? `${days.toFixed(1)} дн` : `${(days*8).toFixed(1)} ч`) : '';
+  if (dLabel) s += txt(cx, ty + tH + (wip > 0 && !isFinal ? 40 : 28), dLabel, 9, col, 700, 'middle');
+  if (isFinal) s += txt(cx, ty - 10, 'ГП', 9, '#888', 600, 'middle');
+
+  return s;
+}
+
+function processBox(bx, cy, w, h, op, taktTime, isBot, over) {
+  const y = cy - h/2;
+  const fill   = over ? '#fef2f2' : isBot ? '#fffbeb' : '#fff';
+  const stroke = over ? '#dc2626' : isBot ? '#d97706' : '#1a6b3c';
+  const sw     = (over || isBot) ? 2.5 : 1.5;
+
+  let s = box(bx, y, w, h, fill, stroke, sw);
+
+  // Name (up to 2 lines, ~20 chars each)
+  const lines = wrapStr(op.name, 20);
+  lines.slice(0,2).forEach((line, li) => {
+    s += txt(bx + w/2, y + 16 + li*14, line, 11, '#1a1a2e', 700, 'middle');
+  });
+
+  const sepY = y + 16 + Math.min(lines.length, 2)*14 + 4;
+  s += `<line x1="${bx+8}" y1="${sepY}" x2="${bx+w-8}" y2="${sepY}" stroke="#e5e7eb" stroke-width="1"/>`;
+
+  const ctCol = over ? '#dc2626' : '#1a6b3c';
+  s += txt(bx + 10, sepY + 14, `CT: ${fmtCT(op.ct)}`, 10, ctCol, 700);
+  s += txt(bx + 10, sepY + 27, `Опер: ${op.ops}`,     10, '#555', 400);
+  s += txt(bx + w/2 + 4, sepY + 14, `Готовн: ${op.uptime}%`, 10, '#555', 400);
+  s += txt(bx + w/2 + 4, sepY + 27, `НЗП: ${op.wip} шт`,    10, '#888', 400);
+
+  // CT vs TT bar
+  const bW = w - 16, bH = 6;
+  const bX = bx + 8, bY = y + h - 14;
+  const ratio  = taktTime > 0 ? Math.min(op.ct / taktTime, 1.5) : 0;
+  const fillW  = Math.min(bW * ratio, bW);
+  const bCol   = over ? '#dc2626' : ratio > 0.8 ? '#d97706' : '#1a6b3c';
+  s += `<rect x="${bX}" y="${bY}" width="${bW}" height="${bH}" rx="3" fill="#e5e7eb"/>`;
+  s += `<rect x="${bX}" y="${bY}" width="${fillW.toFixed(1)}" height="${bH}" rx="3" fill="${bCol}"/>`;
+  // TT marker at 100%
+  s += `<line x1="${bX+bW}" y1="${bY-2}" x2="${bX+bW}" y2="${bY+bH+2}" stroke="#888" stroke-width="1" stroke-dasharray="2,2"/>`;
+  s += txt(bX, bY + bH + 9, 'CT / TT', 8, '#aaa', 400);
+
+  // Badge
+  if (over) {
+    s += `<rect x="${bx+w-60}" y="${y+2}" width="58" height="14" rx="3" fill="#dc2626"/>`;
+    s += txt(bx+w-31, y+12, 'ПЕРЕГРУЗ', 8, '#fff', 700, 'middle');
+  } else if (isBot) {
+    s += `<rect x="${bx+w-62}" y="${y+2}" width="60" height="14" rx="3" fill="#d97706"/>`;
+    s += txt(bx+w-32, y+12, 'УЗКОЕ М.', 8, '#fff', 700, 'middle');
+  }
+
+  return s;
+}
+
+function timeline(x, y, w, h, r) {
+  const total = r.leadTime;
+  if (total === 0) return '';
+
+  let s = '';
+  // Label above
+  s += txt(x, y - 10, 'TIMELINE (временна́я шкала)', 10, '#888', 700);
+
+  // Zigzag line and bars
+  let tx = x;
+  r.segments.forEach(seg => {
+    const sw = total > 0 ? (seg.sec / total) * w : 0;
+    if (sw < 0.5) { tx += sw; return; }
+
+    const col = seg.type === 'wait' ? '#dc2626' : '#1a6b3c';
+    const alpha = seg.type === 'wait' ? 0.12 : 0.18;
+
+    // Bar background
+    s += `<rect x="${tx.toFixed(1)}" y="${y}" width="${sw.toFixed(1)}" height="${h}" fill="${col}" fill-opacity="${alpha}" stroke="${col}" stroke-opacity="0.3" stroke-width="0.5"/>`;
+
+    // Label (time) inside bar
+    const timeLabel = seg.type === 'wait'
+      ? fmtTime(seg.sec, r.workSec)
+      : fmtCT(seg.sec);
+    if (sw > 36) {
+      s += txt(tx + sw/2, y + h/2 + 4, timeLabel, 9, col, 700, 'middle');
+    }
+    tx += sw;
+  });
+
+  // Outer border
+  s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="#ccc" stroke-width="1" rx="2"/>`;
+
+  // LT / PLT labels below
+  const ltText  = `Lead Time = ${fmtTime(r.leadTime, r.workSec)}`;
+  const pltText = `Process Time = ${fmtTime(r.totalProcess, r.workSec)}`;
+  const pceText = `PCE = ${r.pce.toFixed(1)}%`;
+  const pceCol  = r.pce < 10 ? '#dc2626' : r.pce < 25 ? '#d97706' : '#1a6b3c';
+
+  s += `<rect x="${x}" y="${y+h+8}" width="${w}" height="26" rx="4" fill="rgba(0,0,0,0.03)" stroke="#e5e7eb" stroke-width="1"/>`;
+  s += txt(x + 10, y + h + 24, ltText,  10, '#1a1a2e', 700);
+  s += txt(x + w/2, y + h + 24, pltText, 10, '#1a6b3c', 700, 'middle');
+  s += txt(x + w - 10, y + h + 24, pceText, 10, pceCol, 800, 'end');
+
+  // Legend
+  const legy = y + h + 46;
+  s += `<rect x="${x}" y="${legy}" width="12" height="10" fill="#dc2626" fill-opacity="0.25" stroke="#dc2626" stroke-width="1" rx="2"/>`;
+  s += txt(x + 16, legy + 9, 'Время ожидания (потери)', 9, '#555', 400);
+  s += `<rect x="${x+160}" y="${legy}" width="12" height="10" fill="#1a6b3c" fill-opacity="0.25" stroke="#1a6b3c" stroke-width="1" rx="2"/>`;
+  s += txt(x + 176, legy + 9, 'Время создания ценности (CT)', 9, '#555', 400);
+
+  return s;
+}
+
+function wrapStr(str, max) {
+  if (str.length <= max) return [str];
+  const words = str.split(' ');
+  const lines = [];
+  let cur = '';
+  words.forEach(w => {
+    if ((cur + (cur ? ' ' : '') + w).length <= max) {
+      cur += (cur ? ' ' : '') + w;
+    } else {
+      if (cur) lines.push(cur);
+      cur = w;
+    }
+  });
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [str];
+}
+
+// ============================================================
+// RECOMMENDATIONS
+// ============================================================
+function buildRecs(r) {
+  const recs = [];
+  const { pce, taktTime, bottleneck, workSec, leadTime, totalProcess } = r;
+
+  // PCE
+  if (pce < 5) {
+    recs.push({ type: 'critical', icon: '🚨', title: `Критически низкая эффективность потока — PCE ${pce.toFixed(1)}%`,
+      text: `Менее 5% времени создаёт ценность. Более 95% — это чистые потери (ожидание, транспортировка, хранение). Это первоочередная зона для немедленной Lean-трансформации. Требуется разработка VSM будущего состояния с целью устранить минимум 60% потерь.` });
+  } else if (pce < 15) {
+    recs.push({ type: 'warning', icon: '⚠️', title: `Низкая эффективность потока — PCE ${pce.toFixed(1)}%`,
+      text: `Значительная доля Lead Time — это ожидание. Типовая цель для производственных потоков: PCE ≥ 25%. Основные инструменты: вытягивающая система, выравнивание нагрузки, сокращение партий.` });
+  } else if (pce < 30) {
+    recs.push({ type: 'warning', icon: '📈', title: `Умеренная эффективность потока — PCE ${pce.toFixed(1)}%`,
+      text: `Поток работает лучше среднего, но потенциал для сокращения Lead Time ещё есть. Целевое значение мирового класса — PCE ≥ 25–30%. Фокусируйтесь на крупнейших накоплениях запасов.` });
+  } else {
+    recs.push({ type: 'good', icon: '✅', title: `Высокая эффективность потока — PCE ${pce.toFixed(1)}%`,
+      text: `Поток достигает эффективности мирового класса. Продолжайте поддерживать стандарты и ищите следующий уровень совершенства через кайдзен.` });
+  }
+
+  // Bottleneck
+  if (bottleneck) {
+    if (bottleneck.ct > taktTime) {
+      recs.push({ type: 'critical', icon: '🔴', title: `Узкое место перегружено: "${bottleneck.name}" (CT ${bottleneck.ct}с > TT ${taktTime.toFixed(0)}с)`,
+        text: `Операция не успевает за темпом потребителя. Производство теряет ${((bottleneck.ct/taktTime - 1)*100).toFixed(0)}% пропускной способности. Немедленные меры: сокращение CT (SMED, стандартизация), добавление оператора, параллельная рабочая ячейка, перераспределение операций.` });
+    } else {
+      recs.push({ type: 'warning', icon: '🟡', title: `Узкое место: "${bottleneck.name}" (CT ${bottleneck.ct}с, загрузка ${(bottleneck.ct/taktTime*100).toFixed(0)}% от TT)`,
+        text: `Операция с наибольшим временем цикла. Такт-тайм выдерживается, но запас по пропускной способности минимален. При росте спроса или сбоях оборудования возникнут заторы. Рекомендуется провести кайдзен-блиц на этой операции.` });
+    }
+  }
+
+  // Largest inventory
+  const byInv = ops.map((op, i) => ({ ...op, i, days: ((op.invBefore + op.wip) * taktTime) / workSec }))
+    .filter(o => o.days > 0)
+    .sort((a, b) => b.days - a.days);
+  if (byInv.length > 0 && byInv[0].days > 0.5) {
+    const top = byInv[0];
+    const dLabel = top.days >= 1 ? `${top.days.toFixed(1)} дн` : `${(top.days*8).toFixed(1)} ч`;
+    recs.push({ type: 'warning', icon: '📦', title: `Крупнейший запас перед "${top.name}": ${top.invBefore + top.wip} шт ≈ ${dLabel}`,
+      text: `Это наибольший «красный» сегмент на временной шкале. Внедрите супермаркет (Supermarket) с канбан-картами перед этой операцией. Установите максимальный уровень запаса: не более 0.5–1 дня. Это одно действие сократит Lead Time на ${Math.round(top.days * (top.days / (leadTime/workSec)) * 100 / (leadTime/workSec) * 100)}%.` });
+  }
+
+  // Multiple overloaded ops
+  const overloaded = ops.filter(o => o.ct > taktTime);
+  if (overloaded.length > 1) {
+    recs.push({ type: 'critical', icon: '⚡', title: `${overloaded.length} операции превышают такт-тайм`,
+      text: `Операции: ${overloaded.map(o => `"${o.name}" (CT=${o.ct}с)`).join(', ')}. Необходима балансировка нагрузки — Heijunka (выравнивание). Рассмотрите перераспределение шагов между операторами и создание U-образных ячеек.` });
+  }
+
+  // High WIP
+  const highWIP = ops.filter(o => o.wip > 15);
+  if (highWIP.length > 0) {
+    recs.push({ type: 'warning', icon: '🔧', title: 'Высокий уровень НЗП в операциях',
+      text: `Операции с высоким НЗП: ${highWIP.map(o => `"${o.name}" (${o.wip} шт)`).join(', ')}. НЗП указывает на нестабильность процесса или дисбаланс. Инструменты: FIFO-дорожки, лимиты НЗП (WIP limits по Канбан), стандартизированная работа.` });
+  }
+
+  // Future state target
+  const targetLT = leadTime * 0.4;
+  recs.push({ type: 'future', icon: '🎯', title: 'Целевое состояние VSM — будущее состояние (Future State)',
+    text: `Текущий Lead Time: ${fmtTime(leadTime, workSec)}. Реалистичная цель сокращения на 60%: ${fmtTime(targetLT, workSec)}. Ключевые шаги: ① вытягивающая система вместо толкающей; ② поток единичных изделий (one-piece flow) на ключевых участках; ③ выровненное производство (Heijunka); ④ стандартизированная работа на всех операциях.` });
+
+  // Pull system
+  recs.push({ type: 'future', icon: '🔄', title: 'Внедрить систему вытягивания (Pull)',
+    text: `Замените систему "толкай" (push) на "тяни" (pull): установите канбан-петли между операциями с наибольшими запасами, определите Pacemaker Process (задающий ритм процесс), запустите производство сигналами от потребителя, а не по плану. Это устранит перепроизводство — главный вид потерь (муда).` });
+
+  // Kaizen bursts
+  const kTargets = [];
+  if (bottleneck && bottleneck.ct > taktTime * 0.7) kTargets.push(`операция "${bottleneck.name}"`);
+  if (byInv[0]?.days > 1) kTargets.push(`зона запасов перед "${byInv[0].name}"`);
+  if (kTargets.length > 0) {
+    recs.push({ type: 'future', icon: '💡', title: 'Приоритетные зоны для кайдзен-блиц',
+      text: `Рекомендуемые точки для быстрых улучшений (kaizen burst): ${kTargets.join('; ')}. Кайдзен-блиц (3–5 дней) в этих зонах даст максимальный и быстрый эффект для сокращения Lead Time и повышения PCE.` });
+  }
+
+  return recs;
+}
+
+// ============================================================
+// MAIN GENERATE
+// ============================================================
+function generateVSM() {
+  // Sync DOM → ops array (for any un-fired oninput)
+  const rows = document.querySelectorAll('#opsBody tr');
+  rows.forEach((row, i) => {
+    const inputs = row.querySelectorAll('input');
+    if (!inputs.length || !ops[i]) return;
+    ops[i].name     = inputs[0].value || ops[i].name;
+    ops[i].ct       = +inputs[1].value || 1;
+    ops[i].ops      = +inputs[2].value || 1;
+    ops[i].uptime   = +inputs[3].value || 100;
+    ops[i].invBefore= +inputs[4].value || 0;
+    ops[i].wip      = +inputs[5].value || 0;
+  });
+
+  // Sync FG inventory from either input
+  const fgA = +document.getElementById('invFinal').value  || 0;
+  const fgB = +document.getElementById('invFinal2').value || 0;
+  document.getElementById('invFinal2').value = fgB || fgA;
+
+  if (+document.getElementById('dailyDemand').value <= 0) {
+    alert('Введите суточный спрос > 0');
+    return;
+  }
+
+  const r = calculate();
+
+  // Show results
+  const sec = document.getElementById('vsmResults');
+  sec.style.display = 'block';
+
+  // Metrics
+  const pceCol = r.pce < 10 ? 'red' : r.pce < 25 ? 'orange' : 'green';
+  document.getElementById('metricsGrid').innerHTML = `
+    <div class="metric-card metric-card--red">
+      <div class="metric-card__value">${fmtTime(r.leadTime, r.workSec)}</div>
+      <div class="metric-card__label">Lead Time (LT)</div>
+      <div class="metric-card__sub">Полный цикл: от сырья до потребителя</div>
+    </div>
+    <div class="metric-card metric-card--green">
+      <div class="metric-card__value">${fmtTime(r.totalProcess, r.workSec)}</div>
+      <div class="metric-card__label">Process Time (PLT)</div>
+      <div class="metric-card__sub">Только время создания ценности</div>
+    </div>
+    <div class="metric-card metric-card--${pceCol}">
+      <div class="metric-card__value">${r.pce.toFixed(1)}%</div>
+      <div class="metric-card__label">PCE — Эффективность потока</div>
+      <div class="metric-card__sub">Доля ценного времени в LT</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-card__value">${fmtCT(r.taktTime)}</div>
+      <div class="metric-card__label">Такт-тайм (TT)</div>
+      <div class="metric-card__sub">Ритм потребителя: ${r.demand} шт/день</div>
+    </div>
+    <div class="metric-card metric-card--red">
+      <div class="metric-card__value">${fmtTime(r.totalWait, r.workSec)}</div>
+      <div class="metric-card__label">Время ожидания (потери)</div>
+      <div class="metric-card__sub">${(100 - r.pce).toFixed(1)}% от Lead Time</div>
+    </div>
+    <div class="metric-card metric-card--${r.bottleneck?.ct > r.taktTime ? 'red' : 'orange'}">
+      <div class="metric-card__value" style="font-size:18px">${esc(r.bottleneck?.name || '—')}</div>
+      <div class="metric-card__label">Узкое место</div>
+      <div class="metric-card__sub">CT = ${r.bottleneck?.ct || 0} сек · TT = ${r.taktTime.toFixed(0)} сек</div>
+    </div>
+  `;
+
+  // Map subtitle
+  document.getElementById('mapSubtitle').textContent =
+    `(LT = ${fmtTime(r.leadTime, r.workSec)} · PLT = ${fmtTime(r.totalProcess, r.workSec)} · PCE = ${r.pce.toFixed(1)}%)`;
+
+  // SVG
+  document.getElementById('mapScroll').innerHTML = buildSVG(r);
+
+  // Recommendations
+  const recs = buildRecs(r);
+  document.getElementById('recsBlock').innerHTML = `
+    <h2>Рекомендации для VSM будущего состояния</h2>
+    <div class="recs-list">
+      ${recs.map(rec => `
+        <div class="rec-card rec-card--${rec.type}">
+          <div class="rec-card__icon">${rec.icon}</div>
+          <div class="rec-card__content">
+            <h4>${esc(rec.title)}</h4>
+            <p>${esc(rec.text)}</p>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderOps();
+updateTaktBadge();
+</script>
+</body>
+</html>
