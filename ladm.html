@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LADM Симулятор производственной линии — LeanPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #1a6b3c;
+      --primary-dark: #134d2c;
+      --primary-light: #e8f5ee;
+      --accent: #f5a623;
+      --red: #e53935;
+      --red-light: #fff0f0;
+      --green-va: #4caf50;
+      --text: #1a1a2e;
+      --text-muted: #6b7280;
+      --bg: #f8faf9;
+      --border: #e5e7eb;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    /* ── Header ── */
+    .sim-header {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+    .sim-header__inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .back-link:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-light); }
+    .sim-header__info { flex: 1; }
+    .sim-header__title { font-size: 18px; font-weight: 800; line-height: 1.2; }
+    .sim-header__sub { font-size: 12px; color: var(--text-muted); }
+    .sim-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .sim-logo strong { color: var(--primary); }
+
+    /* ── Main layout ── */
+    .sim-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 24px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+    .card__title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card__title-icon { font-size: 18px; }
+
+    /* ── Theory grid ── */
+    .theory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+    }
+    .theory-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+    .theory-card__icon { font-size: 26px; margin-bottom: 8px; }
+    .theory-card__title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .theory-card__body { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
+    .theory-card__formula {
+      margin-top: 10px;
+      padding: 7px 12px;
+      background: #fff;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: monospace;
+      color: var(--primary);
+      border: 1px solid var(--primary-light);
+    }
+
+    /* ── Parameters ── */
+    .params-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      align-items: end;
+    }
+    .param-field { display: flex; flex-direction: column; gap: 7px; }
+    .param-field label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .param-field input[type="number"] {
+      font-family: inherit;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+      -moz-appearance: textfield;
+    }
+    .param-field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .param-field input[type="number"]:focus { border-color: var(--primary); }
+    .takt-box {
+      background: var(--primary-light);
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      padding: 12px 18px;
+      text-align: center;
+    }
+    .takt-box__label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--primary); }
+    .takt-box__value { font-size: 30px; font-weight: 800; color: var(--primary); line-height: 1.2; }
+    .takt-box__sub { font-size: 11px; color: var(--primary); opacity: 0.75; }
+
+    .reset-btn {
+      height: 56px;
+      background: none;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 0 20px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .reset-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+
+    /* ── Operations table ── */
+    .ops-wrap { overflow-x: auto; }
+    .ops-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    .ops-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding: 0 10px 12px;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    .ops-table td {
+      padding: 10px 10px;
+      vertical-align: middle;
+      border-bottom: 1px solid #f2f2f2;
+    }
+    .ops-table tr:last-child td { border-bottom: none; }
+    .ops-table tbody tr:hover td { background: #fafffe; }
+
+    .op-num {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .op-num.bottleneck { background: var(--red); color: #fff; }
+
+    .op-name-input {
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 6px 10px;
+      background: transparent;
+      width: 180px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .op-name-input:hover { border-color: var(--border); }
+    .op-name-input:focus { border-color: var(--primary); background: #fff; }
+
+    /* inline time bar */
+    .ct-bar {
+      display: flex;
+      height: 26px;
+      border-radius: 5px;
+      overflow: hidden;
+      min-width: 100px;
+      background: #f0f0f0;
+      flex: 1;
+    }
+    .ct-bar__green {
+      background: var(--green-va);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff;
+      white-space: nowrap; overflow: hidden; min-width: 0;
+      transition: width 0.25s;
+    }
+    .ct-bar__red {
+      background: var(--red);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff;
+      white-space: nowrap; overflow: hidden; min-width: 0;
+      transition: width 0.25s;
+    }
+    .ct-bar__removed {
+      background: #ffe0e0;
+      transition: width 0.25s;
+    }
+
+    /* slider */
+    .slider-cell { min-width: 160px; }
+    .slider-wrap { display: flex; flex-direction: column; gap: 5px; }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+    .slider-labels span:last-child { font-weight: 700; }
+    input[type="range"].red-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      background: linear-gradient(to right, var(--red) 0%, var(--red) var(--fill), #e0e0e0 var(--fill), #e0e0e0 100%);
+    }
+    input[type="range"].red-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--red);
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    input[type="range"].red-slider::-moz-range-thumb {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--red);
+      cursor: pointer;
+      border: 2px solid #fff;
+    }
+
+    /* CT value column */
+    .ct-val-col { text-align: right; min-width: 80px; }
+    .ct-val { font-size: 20px; font-weight: 800; }
+    .ct-val.ok { color: var(--primary); }
+    .ct-val.warn { color: var(--accent); }
+    .ct-val.over { color: var(--red); }
+    .ct-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-top: 2px;
+    }
+    .ct-tag.over { background: var(--red-light); color: var(--red); }
+    .ct-tag.bottleneck { background: var(--primary-light); color: var(--primary); }
+
+    .delete-btn {
+      background: none; border: none; cursor: pointer;
+      color: #d0d0d0; font-size: 17px;
+      padding: 4px 8px; border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .delete-btn:hover { color: var(--red); background: var(--red-light); }
+
+    .add-op-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: none;
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 11px 20px;
+      font-family: inherit; font-size: 14px; font-weight: 600;
+      color: var(--text-muted); cursor: pointer; width: 100%;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+    .add-op-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+    /* ── SVG chart ── */
+    .chart-scroll { overflow-x: auto; }
+    .chart-svg { display: block; min-width: 480px; }
+    .chart-legend {
+      display: flex; flex-wrap: wrap; gap: 18px;
+      margin-top: 14px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-muted); font-weight: 500; }
+    .legend-sw {
+      width: 22px; height: 11px; border-radius: 3px; flex-shrink: 0;
+    }
+
+    /* ── Results ── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 580px) { .results-grid { grid-template-columns: 1fr; } }
+
+    .result-panel {
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .result-panel--after { border-color: var(--primary); }
+    .result-panel__head {
+      padding: 13px 20px;
+      font-size: 14px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .result-panel--before .result-panel__head { background: #f5f5f5; color: var(--text-muted); }
+    .result-panel--after .result-panel__head { background: var(--primary-light); color: var(--primary); }
+    .result-panel__body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+    .metric { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .metric__label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    .metric__right { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .metric__val { font-size: 20px; font-weight: 800; color: var(--text); }
+    .metric__delta {
+      font-size: 12px; font-weight: 700;
+      padding: 2px 8px; border-radius: 12px;
+    }
+    .delta-good { background: var(--primary-light); color: var(--primary); }
+    .delta-bad  { background: var(--red-light); color: var(--red); }
+
+    .demand-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 20px;
+      font-size: 14px; font-weight: 700;
+    }
+    .demand-badge.ok   { background: var(--primary-light); color: var(--primary); }
+    .demand-badge.fail { background: var(--red-light); color: var(--red); }
+
+    /* ── Balance card ── */
+    .balance-kpi {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .kpi-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .kpi-box.highlight { border-color: var(--primary); background: var(--primary-light); }
+    .kpi-box__label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 4px; }
+    .kpi-box__val { font-size: 26px; font-weight: 800; color: var(--text); line-height: 1.1; }
+    .kpi-box.highlight .kpi-box__val { color: var(--primary); }
+    .kpi-box__sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .lbe-track { height: 7px; background: #eee; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+    .lbe-fill { height: 100%; border-radius: 4px; transition: width 0.45s ease; }
+
+    .elast-table { width: 100%; border-collapse: collapse; min-width: 580px; }
+    .elast-table th {
+      text-align: left;
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-muted); padding: 0 10px 10px;
+      border-bottom: 2px solid var(--border); white-space: nowrap;
+    }
+    .elast-table td { padding: 8px 10px; vertical-align: middle; border-bottom: 1px solid #f2f2f2; font-size: 14px; }
+    .elast-table tr:last-child td { border-bottom: none; }
+    .elast-table tbody tr:hover td { background: #fafffe; }
+
+    .dev-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 10px; font-size: 12px; font-weight: 700; white-space: nowrap;
+    }
+    .dev-badge.over   { background: var(--red-light); color: var(--red); }
+    .dev-badge.under  { background: #e3f2fd; color: #1565c0; }
+    .dev-badge.exact  { background: var(--primary-light); color: var(--primary); }
+
+    input[type="range"].elast-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 6px; border-radius: 3px; outline: none; cursor: pointer;
+      background: linear-gradient(to right, #4caf50 0%, #4caf50 var(--fill), #e0e0e0 var(--fill), #e0e0e0 100%);
+    }
+    input[type="range"].elast-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+      background: #4caf50; cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    input[type="range"].elast-slider::-moz-range-thumb {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #4caf50; cursor: pointer; border: 2px solid #fff;
+    }
+
+    .transfer-badge {
+      font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 10px; white-space: nowrap;
+    }
+    .transfer-badge.give { background: #fff3e0; color: #e65100; }
+    .transfer-badge.recv { background: #e8f5e9; color: #2e7d32; }
+    .transfer-badge.none { background: #f5f5f5; color: #9e9e9e; }
+
+    .balance-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    .btn-auto {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--primary); color: #fff; border: none; border-radius: 8px;
+      padding: 11px 22px; font-family: inherit; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s, transform 0.15s;
+    }
+    .btn-auto:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-reset-bal {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: none; color: var(--text-muted); border: 2px solid var(--border); border-radius: 8px;
+      padding: 11px 22px; font-family: inherit; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-reset-bal:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+    /* ── Operators / U-shape ── */
+    .op-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      display: inline-block; flex-shrink: 0;
+    }
+    .util-wrap { display: flex; align-items: center; gap: 8px; }
+    .util-bar {
+      flex: 1; height: 8px; background: #f0f0f0; border-radius: 4px;
+      overflow: hidden; min-width: 60px;
+    }
+    .util-fill { height: 100%; border-radius: 4px; transition: width 0.35s; }
+
+    .ushape-wrap {
+      display: flex; justify-content: center;
+      margin-top: 8px; overflow-x: auto;
+    }
+    .ushape-svg { display: block; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .card { padding: 20px 16px; }
+      .op-name-input { width: 130px; }
+      .sim-header__title { font-size: 15px; }
+    }
+    @media (max-width: 500px) {
+      .params-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header class="sim-header">
+  <div class="sim-header__inner">
+    <a href="index.html" class="back-link">← Назад</a>
+    <div class="sim-header__info">
+      <div class="sim-header__title">LADM — Симулятор производственной линии</div>
+      <div class="sim-header__sub">Line Architecture Design Methodology</div>
+    </div>
+    <a href="index.html" class="sim-logo">Lean<strong>Pro</strong></a>
+  </div>
+</header>
+
+<main class="sim-main">
+
+  <!-- Theory -->
+  <div class="card">
+    <div class="card__title"><span class="card__title-icon">📚</span>Ключевые понятия LADM</div>
+    <div class="theory-grid">
+      <div class="theory-card">
+        <div class="theory-card__icon">⏱️</div>
+        <div class="theory-card__title">Такт-тайм (Takt Time)</div>
+        <div class="theory-card__body">Ритм производства, задаваемый рынком. Как часто линия должна выпускать одну единицу продукции.</div>
+        <div class="theory-card__formula">TT = Вр.доступное (с) / Спрос (ед)</div>
+      </div>
+      <div class="theory-card">
+        <div class="theory-card__icon">🔗</div>
+        <div class="theory-card__title">Lead Time</div>
+        <div class="theory-card__body">Суммарное время прохождения изделия через все операции линии от начала до конца.</div>
+        <div class="theory-card__formula">LT = Σ CT всех операций</div>
+      </div>
+      <div class="theory-card">
+        <div class="theory-card__icon">🚀</div>
+        <div class="theory-card__title">Exit Rate (Темп выпуска)</div>
+        <div class="theory-card__body">Реальная производительность линии, ограниченная узким местом — операцией с наибольшим Cycle Time.</div>
+        <div class="theory-card__formula">ER = 3600 / CT_max (ед/час)</div>
+      </div>
+      <div class="theory-card">
+        <div class="theory-card__icon">🔴</div>
+        <div class="theory-card__title">Красное время</div>
+        <div class="theory-card__body">Потери внутри цикла: ожидание, лишние движения, поиск, переналадки. Не создаёт ценности для клиента.</div>
+        <div class="theory-card__formula">CT = 🟢 Зелёное + 🔴 Красное</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parameters -->
+  <div class="card">
+    <div class="card__title"><span class="card__title-icon">⚙️</span>Параметры линии</div>
+    <div class="params-grid">
+      <div class="param-field">
+        <label>Доступное время (мин/смена)</label>
+        <input type="number" id="availTime" value="480" min="60" max="1440" step="30" />
+      </div>
+      <div class="param-field">
+        <label>Спрос (ед/смена)</label>
+        <input type="number" id="demand" value="300" min="1" max="9999" step="10" />
+      </div>
+      <div class="takt-box">
+        <div class="takt-box__label">Такт-тайм</div>
+        <div class="takt-box__value" id="taktDisplay">96.0 с</div>
+        <div class="takt-box__sub">целевой ритм выпуска</div>
+      </div>
+      <div>
+        <button class="reset-btn" onclick="resetSliders()">↺ Сбросить все улучшения</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operations editor -->
+  <div class="card">
+    <div class="card__title"><span class="card__title-icon">🔧</span>Операции — управление красным временем</div>
+    <div class="ops-wrap">
+      <table class="ops-table">
+        <thead>
+          <tr>
+            <th style="width:38px">#</th>
+            <th>Операция</th>
+            <th>Состав cycle time</th>
+            <th class="slider-cell">Устранение красного времени →</th>
+            <th style="text-align:right">CT, с</th>
+            <th style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="opsBody"></tbody>
+      </table>
+    </div>
+    <button class="add-op-btn" onclick="addOp()">＋ Добавить операцию</button>
+  </div>
+
+  <!-- Chart -->
+  <div class="card">
+    <div class="card__title"><span class="card__title-icon">📊</span>Диаграмма Cycle Time — до и после улучшения</div>
+    <div class="chart-scroll">
+      <svg id="chartSvg" class="chart-svg"></svg>
+    </div>
+    <div class="chart-legend">
+      <div class="legend-item"><div class="legend-sw" style="background:#4caf50"></div>Зелёное время (ценность)</div>
+      <div class="legend-item"><div class="legend-sw" style="background:#e53935"></div>Красное время «до» (потери)</div>
+      <div class="legend-item"><div class="legend-sw" style="background:#ffcdd2;border:1px solid #ef9a9a"></div>Остаток красного «после»</div>
+      <div class="legend-item">
+        <div class="legend-sw" style="background:transparent;border-top:2px dashed #1a6b3c;width:28px;height:0;margin-top:5px"></div>
+        Такт-тайм
+      </div>
+    </div>
+  </div>
+
+  <!-- Balance -->
+  <div class="card">
+    <div class="card__title"><span class="card__title-icon">⚖️</span>Балансировка операций — правило эластичности</div>
+
+    <div class="balance-kpi" id="balanceKpi"></div>
+
+    <div class="ops-wrap">
+      <table class="elast-table">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>Операция</th>
+            <th>CT (после ↘ красного)</th>
+            <th>Откл. от такта</th>
+            <th style="min-width:180px">Эластичность операции</th>
+            <th style="text-align:right">Перенос</th>
+            <th style="text-align:right">CT балансир.</th>
+          </tr>
+        </thead>
+        <tbody id="elastBody"></tbody>
+      </table>
+    </div>
+
+    <div class="balance-actions">
+      <button class="btn-auto" onclick="autoBalance()">⚡ Авто-балансировка</button>
+      <button class="btn-reset-bal" onclick="resetBalance()">↺ Сбросить баланс</button>
+    </div>
+
+    <div style="margin-top:28px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:3px">Яммадзуми-диаграмма (Yamazumi)</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Нагрузка по операциям до и после балансировки относительно такт-тайма</div>
+      <div class="chart-scroll"><svg id="yamazumiSvg" class="chart-svg"></svg></div>
+      <div class="chart-legend" style="margin-top:12px">
+        <div class="legend-item"><div class="legend-sw" style="background:#2e7d32"></div>Базовое зелёное время (VA)</div>
+        <div class="legend-item"><div class="legend-sw" style="background:#a5d6a7"></div>Принятая работа (+эластичность)</div>
+        <div class="legend-item"><div class="legend-sw" style="background:#ffcdd2;border:1px solid #ef9a9a"></div>Остаток красного времени</div>
+        <div class="legend-item">
+          <div class="legend-sw" style="background:transparent;border-top:2px dashed #1a6b3c;width:28px;height:0;margin-top:5px"></div>
+          Такт-тайм
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="card">
+    <div class="card__title"><span class="card__title-icon">📈</span>Результаты: до и после улучшения</div>
+    <div class="results-grid">
+      <div class="result-panel result-panel--before">
+        <div class="result-panel__head">📉 До улучшения (исходное состояние)</div>
+        <div class="result-panel__body" id="resultsBefore"></div>
+      </div>
+      <div class="result-panel result-panel--after">
+        <div class="result-panel__head">📈 После улучшения (текущее)</div>
+        <div class="result-panel__body" id="resultsAfter"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operators / U-shape -->
+  <div class="card">
+    <div class="card__title"><span class="card__title-icon">👥</span>Число операторов — принцип U-shape</div>
+
+    <div class="balance-kpi" id="operatorKpi"></div>
+
+    <div style="margin-top:4px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:3px">Схема U-образной ячейки</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
+        Цвет станции = оператор. Один оператор ведёт 2 станции, если Σ CT ≤ Такт-тайм.
+        Цифра в углу — номер оператора. Пунктир — маршрут перемещения.
+      </div>
+      <div class="ushape-wrap"><svg id="ushapeSvg" class="ushape-svg"></svg></div>
+    </div>
+
+    <div style="margin-top:24px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:14px">Распределение операций по операторам</div>
+      <div class="ops-wrap">
+        <table class="elast-table">
+          <thead>
+            <tr>
+              <th>Оператор</th>
+              <th>Операции</th>
+              <th>Σ CT</th>
+              <th>Загрузка / Такт</th>
+              <th style="text-align:right">Статус</th>
+            </tr>
+          </thead>
+          <tbody id="assignBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let opIdSeed = 6;
+
+const state = {
+  availTime: 480,
+  demand: 300,
+  ops: [
+    { id: 1, name: 'Подача деталей',    green: 45, redOrig: 20, redCur: 20, elasticity: 60, transfer: 0 },
+    { id: 2, name: 'Сборка корпуса',    green: 60, redOrig: 25, redCur: 25, elasticity: 40, transfer: 0 },
+    { id: 3, name: 'Монтаж электрики',  green: 50, redOrig: 55, redCur: 55, elasticity: 30, transfer: 0 },
+    { id: 4, name: 'Контроль качества', green: 35, redOrig: 40, redCur: 40, elasticity: 50, transfer: 0 },
+    { id: 5, name: 'Упаковка',          green: 40, redOrig: 15, redCur: 15, elasticity: 70, transfer: 0 },
+  ]
+};
+
+// ══════════════════════════════════════════
+//  COMPUTE
+// ══════════════════════════════════════════
+function getTakt() {
+  return (state.availTime * 60) / state.demand;
+}
+
+function computeMetrics(useOrig) {
+  const takt = getTakt();
+  const cts = state.ops.map(op => ({
+    id: op.id,
+    name: op.name,
+    green: op.green,
+    red: useOrig ? op.redOrig : op.redCur,
+    ct: op.green + (useOrig ? op.redOrig : op.redCur)
+  }));
+  const maxCT = Math.max(...cts.map(o => o.ct));
+  const bottleneckId = cts.find(o => o.ct === maxCT)?.id;
+  const leadTime = cts.reduce((s, o) => s + o.ct, 0);
+  const exitRate = 3600 / maxCT;
+  return { cts, maxCT, bottleneckId, leadTime, exitRate, meetsDemand: maxCT <= takt };
+}
+
+// ══════════════════════════════════════════
+//  RENDER OPS TABLE
+// ══════════════════════════════════════════
+function renderOpsTable() {
+  const takt = getTakt();
+  const afterMaxCT = Math.max(...state.ops.map(o => o.green + o.redCur));
+  const tbody = document.getElementById('opsBody');
+  tbody.innerHTML = '';
+
+  state.ops.forEach((op, i) => {
+    const ctBefore = op.green + op.redOrig;
+    const ctAfter  = op.green + op.redCur;
+    const isBottleneck = ctAfter === afterMaxCT;
+    const isOverTakt   = ctAfter > takt;
+
+    // inline bar: base = ctBefore
+    const base = ctBefore;
+    const gPct    = (op.green     / base * 100).toFixed(1);
+    const rPct    = (op.redCur    / base * 100).toFixed(1);
+    const rmvPct  = ((op.redOrig - op.redCur) / base * 100).toFixed(1);
+
+    // slider fill
+    const fillPct = op.redOrig > 0 ? ((op.redCur / op.redOrig) * 100).toFixed(1) : 0;
+
+    const tr = document.createElement('tr');
+    tr.dataset.id = op.id;
+
+    const ctClass = isOverTakt ? 'over' : (isBottleneck ? 'warn' : 'ok');
+    const numClass = isOverTakt ? 'bottleneck' : '';
+
+    tr.innerHTML = `
+      <td><div class="op-num ${numClass}">${i + 1}</div></td>
+      <td>
+        <input class="op-name-input" value="${op.name}"
+          onchange="updateName(${i}, this.value)" />
+      </td>
+      <td>
+        <div class="ct-bar" title="Зел: ${op.green}с  Красн: ${op.redCur}с  Убрано: ${op.redOrig - op.redCur}с">
+          <div class="ct-bar__green" style="width:${gPct}%">${op.green > 12 ? op.green + 'с' : ''}</div>
+          <div class="ct-bar__red"   style="width:${rPct}%">${op.redCur > 10 ? op.redCur + 'с' : ''}</div>
+          <div class="ct-bar__removed" style="width:${rmvPct}%"></div>
+        </div>
+      </td>
+      <td class="slider-cell">
+        <div class="slider-wrap">
+          <input type="range" class="red-slider"
+            min="0" max="${op.redOrig}" value="${op.redCur}" step="1"
+            style="--fill:${fillPct}%"
+            oninput="updateRedTime(${i}, this)" />
+          <div class="slider-labels">
+            <span>0 с (убрать всё)</span>
+            <span style="color:var(--red)">${op.redCur} с / ${op.redOrig} с</span>
+          </div>
+        </div>
+      </td>
+      <td class="ct-val-col">
+        <div class="ct-val ${ctClass}">${ctAfter}</div>
+        ${isOverTakt   ? '<div class="ct-tag over">▲ > такт</div>' : ''}
+        ${isBottleneck && !isOverTakt ? '<div class="ct-tag bottleneck">● узкое место</div>' : ''}
+      </td>
+      <td>
+        <button class="delete-btn" onclick="deleteOp(${i})" title="Удалить операцию">✕</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateName(i, val) {
+  state.ops[i].name = val;
+  renderChart();
+}
+
+function updateRedTime(i, input) {
+  const val = parseInt(input.value);
+  state.ops[i].redCur = val;
+  const pct = state.ops[i].redOrig > 0 ? (val / state.ops[i].redOrig * 100).toFixed(1) : 0;
+  input.style.setProperty('--fill', pct + '%');
+  renderAll();
+}
+
+function deleteOp(i) {
+  if (state.ops.length <= 2) { alert('Минимум 2 операции'); return; }
+  state.ops.splice(i, 1);
+  renderAll();
+}
+
+function addOp() {
+  state.ops.push({ id: opIdSeed++, name: 'Операция ' + (state.ops.length + 1), green: 40, redOrig: 25, redCur: 25, elasticity: 50, transfer: 0 });
+  renderAll();
+}
+
+function resetSliders() {
+  state.ops.forEach(op => { op.redCur = op.redOrig; });
+  renderAll();
+}
+
+// ══════════════════════════════════════════
+//  RENDER RESULTS
+// ══════════════════════════════════════════
+function fmt(s) {
+  if (s >= 120) return (s / 60).toFixed(1) + ' мин';
+  return s.toFixed(0) + ' с';
+}
+
+function renderResults() {
+  const takt = getTakt();
+  const before = computeMetrics(true);
+  const after  = computeMetrics(false);
+
+  const bName = state.ops.find(o => o.id === before.bottleneckId)?.name || '—';
+  const aName = state.ops.find(o => o.id === after.bottleneckId)?.name || '—';
+
+  const leadDeltaPct = before.leadTime > 0
+    ? Math.round((before.leadTime - after.leadTime) / before.leadTime * 100)
+    : 0;
+  const exitDeltaPct = before.exitRate > 0
+    ? Math.round((after.exitRate - before.exitRate) / before.exitRate * 100)
+    : 0;
+  const ctDeltaPct = before.maxCT > 0
+    ? Math.round((before.maxCT - after.maxCT) / before.maxCT * 100)
+    : 0;
+
+  document.getElementById('resultsBefore').innerHTML = `
+    <div class="metric">
+      <span class="metric__label">Такт-тайм</span>
+      <div class="metric__right"><span class="metric__val">${fmt(takt)}</span></div>
+    </div>
+    <div class="metric">
+      <span class="metric__label">Lead Time</span>
+      <div class="metric__right"><span class="metric__val">${fmt(before.leadTime)}</span></div>
+    </div>
+    <div class="metric">
+      <span class="metric__label">Exit Rate</span>
+      <div class="metric__right"><span class="metric__val">${before.exitRate.toFixed(1)} ед/ч</span></div>
+    </div>
+    <div class="metric">
+      <span class="metric__label">CT узкого места</span>
+      <div class="metric__right"><span class="metric__val">${before.maxCT} с</span></div>
+    </div>
+    <div class="metric">
+      <span class="metric__label">Узкое место</span>
+      <div class="metric__right"><span class="metric__val" style="font-size:14px">${bName}</span></div>
+    </div>
+    <div>
+      <div class="demand-badge ${before.meetsDemand ? 'ok' : 'fail'}">
+        ${before.meetsDemand ? '✅ Спрос выполняется' : '❌ Спрос НЕ выполняется'}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('resultsAfter').innerHTML = `
+    <div class="metric">
+      <span class="metric__label">Такт-тайм</span>
+      <div class="metric__right"><span class="metric__val">${fmt(takt)}</span></div>
+    </div>
+    <div class="metric">
+      <span class="metric__label">Lead Time</span>
+      <div class="metric__right">
+        <span class="metric__val">${fmt(after.leadTime)}</span>
+        ${leadDeltaPct > 0 ? `<span class="metric__delta delta-good">−${leadDeltaPct}%</span>` : ''}
+      </div>
+    </div>
+    <div class="metric">
+      <span class="metric__label">Exit Rate</span>
+      <div class="metric__right">
+        <span class="metric__val">${after.exitRate.toFixed(1)} ед/ч</span>
+        ${exitDeltaPct > 0 ? `<span class="metric__delta delta-good">+${exitDeltaPct}%</span>` : ''}
+      </div>
+    </div>
+    <div class="metric">
+      <span class="metric__label">CT узкого места</span>
+      <div class="metric__right">
+        <span class="metric__val">${after.maxCT} с</span>
+        ${ctDeltaPct > 0 ? `<span class="metric__delta delta-good">−${ctDeltaPct}%</span>` : ''}
+      </div>
+    </div>
+    <div class="metric">
+      <span class="metric__label">Узкое место</span>
+      <div class="metric__right"><span class="metric__val" style="font-size:14px">${aName}</span></div>
+    </div>
+    <div>
+      <div class="demand-badge ${after.meetsDemand ? 'ok' : 'fail'}">
+        ${after.meetsDemand ? '✅ Спрос выполняется' : '❌ Спрос НЕ выполняется'}
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════
+//  RENDER SVG CHART
+// ══════════════════════════════════════════
+function renderChart() {
+  const svg = document.getElementById('chartSvg');
+  const takt = getTakt();
+  const ops  = state.ops;
+
+  const W = Math.max(svg.parentElement.clientWidth || 700, 480);
+  const H = 340;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+
+  const mL = 58, mR = 24, mT = 28, mB = 68;
+  const cW = W - mL - mR;
+  const cH = H - mT - mB;
+
+  const allCTs = ops.flatMap(op => [op.green + op.redOrig, op.green + op.redCur]);
+  const maxVal = Math.max(...allCTs, takt) * 1.18;
+
+  const toY = v => mT + cH - (v / maxVal) * cH;
+  const toH = v => (v / maxVal) * cH;
+
+  let html = '';
+
+  // gridlines + y-labels
+  const steps = 5;
+  for (let i = 0; i <= steps; i++) {
+    const v = (maxVal / steps) * i;
+    const y = toY(v);
+    html += `<line x1="${mL}" y1="${y}" x2="${W - mR}" y2="${y}" stroke="#f0f0f0" stroke-width="1"/>`;
+    html += `<text x="${mL - 6}" y="${y + 4}" text-anchor="end" font-size="11" fill="#b0b0b0" font-family="Inter,sans-serif">${Math.round(v)}</text>`;
+  }
+
+  // Y axis label
+  html += `<text x="14" y="${mT + cH / 2}" text-anchor="middle" font-size="11" fill="#b0b0b0" transform="rotate(-90,14,${mT + cH / 2})" font-family="Inter,sans-serif">Секунды</text>`;
+
+  // X axis base line
+  html += `<line x1="${mL}" y1="${mT + cH}" x2="${W - mR}" y2="${mT + cH}" stroke="#e0e0e0" stroke-width="1.5"/>`;
+
+  // Takt line
+  const taktY = toY(takt);
+  html += `<line x1="${mL}" y1="${taktY}" x2="${W - mR}" y2="${taktY}" stroke="#1a6b3c" stroke-width="2" stroke-dasharray="9,5" opacity="0.85"/>`;
+  html += `<rect x="${W - mR - 72}" y="${taktY - 16}" width="68" height="16" rx="4" fill="#e8f5ee"/>`;
+  html += `<text x="${W - mR - 36}" y="${taktY - 4}" text-anchor="middle" font-size="11" fill="#1a6b3c" font-weight="700" font-family="Inter,sans-serif">TT = ${Math.round(takt)} с</text>`;
+
+  // Bars
+  const nOps  = ops.length;
+  const groupW = cW / nOps;
+  const barW   = Math.min(groupW * 0.32, 38);
+  const gap    = Math.min(groupW * 0.06, 5);
+
+  ops.forEach((op, i) => {
+    const cx = mL + groupW * i + groupW / 2;
+
+    // ── BEFORE bar ──
+    const ctBef = op.green + op.redOrig;
+    const xB    = cx - barW - gap / 2;
+    const yBotB = mT + cH; // baseline
+
+    // green
+    const ghB = toH(op.green);
+    html += `<rect x="${xB}" y="${yBotB - ghB}" width="${barW}" height="${ghB}" fill="#4caf50" rx="3 3 0 0"/>`;
+    // red orig
+    if (op.redOrig > 0) {
+      const rhB = toH(op.redOrig);
+      html += `<rect x="${xB}" y="${yBotB - ghB - rhB}" width="${barW}" height="${rhB}" fill="#e53935" rx="3 3 0 0"/>`;
+    }
+    // CT label
+    html += `<text x="${xB + barW / 2}" y="${toY(ctBef) - 4}" text-anchor="middle" font-size="11" fill="#757575" font-weight="600" font-family="Inter,sans-serif">${ctBef}</text>`;
+
+    // ── AFTER bar ──
+    const ctAft = op.green + op.redCur;
+    const xA    = cx + gap / 2;
+
+    // green
+    const ghA = toH(op.green);
+    html += `<rect x="${xA}" y="${yBotB - ghA}" width="${barW}" height="${ghA}" fill="#4caf50" rx="3 3 0 0"/>`;
+    // red remaining
+    if (op.redCur > 0) {
+      const rhA = toH(op.redCur);
+      html += `<rect x="${xA}" y="${yBotB - ghA - rhA}" width="${barW}" height="${rhA}" fill="#ffcdd2" rx="3 3 0 0" stroke="#ef9a9a" stroke-width="1"/>`;
+    }
+    // CT label
+    const lblColor = ctAft > takt ? '#e53935' : '#1a6b3c';
+    html += `<text x="${xA + barW / 2}" y="${toY(ctAft) - 4}" text-anchor="middle" font-size="11" fill="${lblColor}" font-weight="700" font-family="Inter,sans-serif">${ctAft}</text>`;
+
+    // Over-takt indicator
+    if (ctAft > takt) {
+      html += `<text x="${xA + barW / 2}" y="${toY(ctAft) - 16}" text-anchor="middle" font-size="13" font-family="Inter,sans-serif">⚠</text>`;
+    }
+
+    // Op label
+    const lbl = op.name.length > 13 ? op.name.slice(0, 12) + '…' : op.name;
+    html += `<text x="${cx}" y="${H - mB + 18}" text-anchor="middle" font-size="12" fill="#555" font-family="Inter,sans-serif">${lbl}</text>`;
+
+    // До/После sub-labels
+    html += `<text x="${xB + barW / 2}" y="${H - mB + 34}" text-anchor="middle" font-size="10" fill="#aaa" font-family="Inter,sans-serif">До</text>`;
+    html += `<text x="${xA + barW / 2}" y="${H - mB + 34}" text-anchor="middle" font-size="10" fill="#aaa" font-family="Inter,sans-serif">После</text>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+//  BALANCE HELPERS
+// ══════════════════════════════════════════
+function getBalancedCT(op) {
+  return op.green + op.redCur + (op.transfer || 0);
+}
+
+function computeBalanceMetrics(useBalanced) {
+  const cts = state.ops.map(op => useBalanced ? getBalancedCT(op) : op.green + op.redCur);
+  const maxCT  = Math.max(...cts);
+  const sumCT  = cts.reduce((a, b) => a + b, 0);
+  const n      = state.ops.length;
+  const lbe    = maxCT > 0 ? Math.round(sumCT / (n * maxCT) * 100) : 0;
+  const loss   = Math.round(n * maxCT - sumCT);
+  const exitRate = 3600 / maxCT;
+  return { cts, maxCT, sumCT, n, lbe, loss, exitRate };
+}
+
+// ── Render balance card ──
+function renderBalance() {
+  const takt = getTakt();
+  const bef  = computeBalanceMetrics(false);
+  const aft  = computeBalanceMetrics(true);
+  const lbeDelta  = aft.lbe - bef.lbe;
+  const lossDelta = bef.loss - aft.loss;
+
+  const lbeColor = lbe => lbe >= 85 ? '#4caf50' : lbe >= 70 ? '#ff9800' : '#e53935';
+
+  document.getElementById('balanceKpi').innerHTML = `
+    <div class="kpi-box">
+      <div class="kpi-box__label">КПД балансировки (до)</div>
+      <div class="kpi-box__val">${bef.lbe}%</div>
+      <div class="lbe-track"><div class="lbe-fill" style="width:${bef.lbe}%;background:#bdbdbd"></div></div>
+      <div class="kpi-box__sub">Σ CT / (N × CT_max)</div>
+    </div>
+    <div class="kpi-box ${lbeDelta > 0 ? 'highlight' : ''}">
+      <div class="kpi-box__label">КПД балансировки (после)</div>
+      <div class="kpi-box__val">${aft.lbe}%</div>
+      <div class="lbe-track"><div class="lbe-fill" style="width:${aft.lbe}%;background:${lbeColor(aft.lbe)}"></div></div>
+      <div class="kpi-box__sub">${lbeDelta > 0 ? '▲ +' + lbeDelta + 'п.п.' : lbeDelta === 0 ? '— без изменений' : '▼ ' + lbeDelta + 'п.п.'}</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-box__label">Потери баланса (до)</div>
+      <div class="kpi-box__val">${bef.loss} с</div>
+      <div class="kpi-box__sub">N × CT_max − Σ CT</div>
+    </div>
+    <div class="kpi-box ${lossDelta > 0 ? 'highlight' : ''}">
+      <div class="kpi-box__label">Потери баланса (после)</div>
+      <div class="kpi-box__val">${aft.loss} с</div>
+      <div class="kpi-box__sub">${lossDelta > 0 ? '↓ сокращены на ' + lossDelta + ' с' : '— без изменений'}</div>
+    </div>
+  `;
+
+  const tbody = document.getElementById('elastBody');
+  tbody.innerHTML = '';
+
+  state.ops.forEach((op, i) => {
+    const baseCT  = op.green + op.redCur;
+    const balCT   = getBalancedCT(op);
+    const dev     = baseCT - takt;
+    const devCls  = dev > 0.5 ? 'over' : dev < -0.5 ? 'under' : 'exact';
+    const devSign = dev > 0 ? '+' : '';
+    const elastPct = op.elasticity ?? 50;
+    const elastAmt = Math.round(op.green * elastPct / 100);
+    const tr       = op.transfer || 0;
+    const trCls    = tr > 0 ? 'recv' : tr < 0 ? 'give' : 'none';
+    const trLabel  = tr > 0 ? `+${tr} с ▲` : tr < 0 ? `${tr} с ▼` : '0 с';
+    const balColor = balCT > takt ? 'var(--red)' : 'var(--primary)';
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><div class="op-num">${i + 1}</div></td>
+      <td style="font-weight:600">${op.name}</td>
+      <td>
+        <span style="font-size:17px;font-weight:800">${baseCT} с</span>
+        <span style="font-size:11px;color:var(--text-muted);margin-left:6px">🟢${op.green}+🔴${op.redCur}</span>
+      </td>
+      <td><span class="dev-badge ${devCls}">${devSign}${Math.round(dev)} с</span></td>
+      <td>
+        <div class="slider-wrap">
+          <input type="range" class="elast-slider"
+            min="0" max="100" value="${elastPct}" step="5"
+            style="--fill:${elastPct}%"
+            oninput="updateElasticity(${i}, this)" />
+          <div class="slider-labels">
+            <span>±${elastAmt} с макс.</span>
+            <span style="color:#4caf50;font-weight:700">${elastPct}%</span>
+          </div>
+        </div>
+      </td>
+      <td style="text-align:right"><span class="transfer-badge ${trCls}">${trLabel}</span></td>
+      <td style="text-align:right">
+        <div style="font-size:18px;font-weight:800;color:${balColor}">${balCT} с</div>
+        ${balCT > takt ? '<div style="font-size:10px;font-weight:700;color:var(--red)">▲ > такт</div>' : ''}
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+function updateElasticity(i, input) {
+  const val = parseInt(input.value);
+  state.ops[i].elasticity = val;
+  input.style.setProperty('--fill', val + '%');
+  const maxT = Math.round(state.ops[i].green * val / 100);
+  state.ops[i].transfer = Math.max(-maxT, Math.min(maxT, state.ops[i].transfer || 0));
+  renderBalance();
+  renderYamazumi();
+}
+
+// ── Auto-balance (elasticity rule) ──
+function autoBalance() {
+  const takt  = getTakt();
+  const ops   = state.ops;
+  const baseC = ops.map(op => op.green + op.redCur);
+  const total = baseC.reduce((a, b) => a + b, 0);
+  const n     = ops.length;
+
+  // Ideal: distribute evenly, capped at takt
+  const targetCT = Math.min(total / n, takt);
+
+  // Reset
+  ops.forEach(op => { op.transfer = 0; });
+
+  // Remaining surplus per op: >0 = giver, <0 = receiver
+  const rem = baseC.map(ct => ct - targetCT);
+
+  for (let gi = 0; gi < n; gi++) {
+    if (rem[gi] <= 0.5) continue;
+    const maxGive = Math.floor(ops[gi].green * ops[gi].elasticity / 100);
+    let canGive   = Math.min(Math.floor(rem[gi]), maxGive);
+
+    for (let ri = 0; ri < n && canGive > 0; ri++) {
+      if (gi === ri || rem[ri] >= -0.5) continue;
+      const maxRecv   = Math.floor(ops[ri].green * ops[ri].elasticity / 100);
+      const recvLeft  = Math.min(Math.floor(-rem[ri]), maxRecv - (ops[ri].transfer || 0));
+      if (recvLeft <= 0) continue;
+
+      const amount    = Math.min(canGive, recvLeft);
+      ops[gi].transfer = (ops[gi].transfer || 0) - amount;
+      ops[ri].transfer = (ops[ri].transfer || 0) + amount;
+      rem[gi] -= amount;
+      rem[ri] += amount;
+      canGive -= amount;
+    }
+  }
+
+  renderBalance();
+  renderYamazumi();
+}
+
+function resetBalance() {
+  state.ops.forEach(op => { op.transfer = 0; });
+  renderBalance();
+  renderYamazumi();
+}
+
+// ── Yamazumi chart ──
+function renderYamazumi() {
+  const svg = document.getElementById('yamazumiSvg');
+  if (!svg) return;
+  const takt = getTakt();
+  const ops  = state.ops;
+
+  const W = Math.max(svg.parentElement.clientWidth || 700, 480);
+  const H = 310;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+
+  const mL = 56, mR = 24, mT = 24, mB = 64;
+  const cW = W - mL - mR;
+  const cH = H - mT - mB;
+  const yBot = mT + cH;
+
+  const allCTs = ops.flatMap(op => [op.green + op.redCur, getBalancedCT(op)]);
+  const maxVal = Math.max(...allCTs, takt) * 1.2;
+
+  const toY = v => mT + cH - (v / maxVal) * cH;
+  const toH = v => (v / maxVal) * cH;
+
+  let html = '';
+
+  // Gridlines + Y labels
+  for (let s = 0; s <= 5; s++) {
+    const v = (maxVal / 5) * s;
+    const y = toY(v);
+    html += `<line x1="${mL}" y1="${y}" x2="${W - mR}" y2="${y}" stroke="#f0f0f0" stroke-width="1"/>`;
+    html += `<text x="${mL - 6}" y="${y + 4}" text-anchor="end" font-size="11" fill="#b0b0b0" font-family="Inter,sans-serif">${Math.round(v)}</text>`;
+  }
+  html += `<text x="13" y="${mT + cH / 2}" text-anchor="middle" font-size="11" fill="#b0b0b0" transform="rotate(-90,13,${mT + cH / 2})" font-family="Inter,sans-serif">Секунды</text>`;
+  html += `<line x1="${mL}" y1="${yBot}" x2="${W - mR}" y2="${yBot}" stroke="#e0e0e0" stroke-width="1.5"/>`;
+
+  // Takt line
+  const taktY = toY(takt);
+  html += `<line x1="${mL}" y1="${taktY}" x2="${W - mR}" y2="${taktY}" stroke="#1a6b3c" stroke-width="2" stroke-dasharray="9,5" opacity="0.85"/>`;
+  html += `<rect x="${W - mR - 72}" y="${taktY - 16}" width="68" height="16" rx="4" fill="#e8f5ee"/>`;
+  html += `<text x="${W - mR - 36}" y="${taktY - 4}" text-anchor="middle" font-size="11" fill="#1a6b3c" font-weight="700" font-family="Inter,sans-serif">TT = ${Math.round(takt)} с</text>`;
+
+  // Bars
+  const groupW = cW / ops.length;
+  const barW   = Math.min(groupW * 0.32, 40);
+  const gap    = Math.min(groupW * 0.06, 6);
+
+  ops.forEach((op, i) => {
+    const cx      = mL + groupW * i + groupW / 2;
+    const baseCT  = op.green + op.redCur;
+    const balCT   = getBalancedCT(op);
+    const tr      = op.transfer || 0;
+    const xB      = cx - barW - gap / 2;
+    const xA      = cx + gap / 2;
+
+    // BEFORE bar
+    html += `<rect x="${xB}" y="${yBot - toH(op.green)}" width="${barW}" height="${toH(op.green)}" fill="#2e7d32" rx="2"/>`;
+    if (op.redCur > 0) {
+      html += `<rect x="${xB}" y="${yBot - toH(baseCT)}" width="${barW}" height="${toH(op.redCur)}" fill="#ffcdd2" rx="2" stroke="#ef9a9a" stroke-width="0.5"/>`;
+    }
+    html += `<text x="${xB + barW / 2}" y="${toY(baseCT) - 4}" text-anchor="middle" font-size="11" fill="#757575" font-weight="600" font-family="Inter,sans-serif">${baseCT}</text>`;
+
+    // AFTER bar
+    if (tr >= 0) {
+      // received: dark green base + light green received + red on top
+      html += `<rect x="${xA}" y="${yBot - toH(op.green)}" width="${barW}" height="${toH(op.green)}" fill="#2e7d32" rx="2"/>`;
+      if (tr > 0) {
+        html += `<rect x="${xA}" y="${yBot - toH(op.green) - toH(tr)}" width="${barW}" height="${toH(tr)}" fill="#a5d6a7" rx="2"/>`;
+      }
+    } else {
+      // gave away: smaller dark green bar
+      const netG = op.green + tr;
+      html += `<rect x="${xA}" y="${yBot - toH(netG)}" width="${barW}" height="${toH(netG)}" fill="#2e7d32" rx="2"/>`;
+    }
+    if (op.redCur > 0) {
+      html += `<rect x="${xA}" y="${yBot - toH(balCT)}" width="${barW}" height="${toH(op.redCur)}" fill="#ffcdd2" rx="2" stroke="#ef9a9a" stroke-width="0.5"/>`;
+    }
+    const balColor = balCT > takt ? '#e53935' : '#1a6b3c';
+    html += `<text x="${xA + barW / 2}" y="${toY(balCT) - 4}" text-anchor="middle" font-size="11" fill="${balColor}" font-weight="700" font-family="Inter,sans-serif">${balCT}</text>`;
+    if (balCT > takt) {
+      html += `<text x="${xA + barW / 2}" y="${toY(balCT) - 16}" text-anchor="middle" font-size="13" font-family="Inter,sans-serif">⚠</text>`;
+    }
+
+    // Labels
+    const lbl = op.name.length > 13 ? op.name.slice(0, 12) + '…' : op.name;
+    html += `<text x="${cx}" y="${H - mB + 18}" text-anchor="middle" font-size="12" fill="#555" font-family="Inter,sans-serif">${lbl}</text>`;
+    html += `<text x="${xB + barW / 2}" y="${H - mB + 32}" text-anchor="middle" font-size="10" fill="#aaa" font-family="Inter,sans-serif">До</text>`;
+    html += `<text x="${xA + barW / 2}" y="${H - mB + 32}" text-anchor="middle" font-size="10" fill="#aaa" font-family="Inter,sans-serif">После</text>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+//  U-SHAPE / OPERATORS
+// ══════════════════════════════════════════
+const OP_COLORS = ['#2196f3','#4caf50','#ff9800','#9c27b0','#e91e63','#00bcd4','#795548','#607d8b'];
+
+function computeUShapeAssignment() {
+  const takt = getTakt();
+  const ops  = state.ops;
+  const N    = ops.length;
+  const leftCount = Math.floor(N / 2);
+  const hasBottom = (N % 2) === 1;
+  const assignments = [];
+
+  for (let k = 0; k < leftCount; k++) {
+    const iA = k, iB = N - 1 - k;
+    const ctA = getBalancedCT(ops[iA]);
+    const ctB = getBalancedCT(ops[iB]);
+    const combined = ctA + ctB;
+    if (combined <= takt) {
+      assignments.push({ indices: [iA, iB], totalCT: combined,
+        color: OP_COLORS[assignments.length % OP_COLORS.length], overloaded: false });
+    } else {
+      assignments.push({ indices: [iA], totalCT: ctA,
+        color: OP_COLORS[assignments.length % OP_COLORS.length], overloaded: ctA > takt });
+      assignments.push({ indices: [iB], totalCT: ctB,
+        color: OP_COLORS[assignments.length % OP_COLORS.length], overloaded: ctB > takt });
+    }
+  }
+  if (hasBottom) {
+    const mid = leftCount;
+    const ctM = getBalancedCT(ops[mid]);
+    assignments.push({ indices: [mid], totalCT: ctM,
+      color: OP_COLORS[assignments.length % OP_COLORS.length], overloaded: ctM > takt });
+  }
+  return assignments;
+}
+
+function renderOperators() {
+  const takt = getTakt();
+  const N    = state.ops.length;
+  const assignments = computeUShapeAssignment();
+
+  const totalCT = state.ops.reduce((s, op) => s + getBalancedCT(op), 0);
+  const theorMin = Math.ceil(totalCT / takt);
+  const withoutU = N;
+  const withU    = assignments.length;
+  const saving   = withoutU - withU;
+  const utilCoef = Math.round(totalCT / (withU * takt) * 100);
+
+  document.getElementById('operatorKpi').innerHTML = `
+    <div class="kpi-box">
+      <div class="kpi-box__label">Теоретический минимум</div>
+      <div class="kpi-box__val">${theorMin} чел.</div>
+      <div class="kpi-box__sub">⌈Σ CT / Такт⌉</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-box__label">Без U-shape</div>
+      <div class="kpi-box__val">${withoutU} чел.</div>
+      <div class="kpi-box__sub">1 оператор / станция</div>
+    </div>
+    <div class="kpi-box ${saving > 0 ? 'highlight' : ''}">
+      <div class="kpi-box__label">С U-shape</div>
+      <div class="kpi-box__val">${withU} чел.</div>
+      <div class="kpi-box__sub">${saving > 0 ? '↓ экономия ' + saving + ' чел.' : 'объединение невозможно'}</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-box__label">Коэф. использования</div>
+      <div class="kpi-box__val">${utilCoef}%</div>
+      <div class="kpi-box__sub">Σ CT / (N_опер × TT)</div>
+    </div>
+  `;
+
+  const tbody = document.getElementById('assignBody');
+  tbody.innerHTML = '';
+  assignments.forEach((asgn, ai) => {
+    const names = asgn.indices.map(idx => state.ops[idx].name).join(' + ');
+    const util  = Math.round(asgn.totalCT / takt * 100);
+    const uCol  = util > 100 ? '#e53935' : util >= 85 ? '#4caf50' : '#ff9800';
+    const status = asgn.overloaded ? '❌ Перегрузка' : util >= 85 ? '✅ Оптимально' : '⚠ Недозагрузка';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="op-dot" style="background:${asgn.color}"></div>
+          <strong>Оператор ${ai + 1}</strong>
+        </div>
+      </td>
+      <td style="color:var(--text-muted)">${names}</td>
+      <td style="font-weight:700">${asgn.totalCT} с</td>
+      <td>
+        <div class="util-wrap">
+          <div class="util-bar">
+            <div class="util-fill" style="width:${Math.min(util,100)}%;background:${uCol}"></div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:${uCol};min-width:44px">${util}%</span>
+        </div>
+      </td>
+      <td style="text-align:right;font-size:13px;font-weight:600">${status}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  renderUShape(assignments);
+}
+
+// ── Draw one station box in the U-shape SVG ──
+function drawUBox(x, y, w, h, name, ct, opNum, color, takt) {
+  const label = name.length > 11 ? name.slice(0, 10) + '…' : name;
+  const pct   = Math.min(Math.round(ct / takt * 100), 999);
+  const over  = ct > takt;
+  let html = '';
+  html += `<rect x="${x+1}" y="${y+1}" width="${w-2}" height="${h-2}" rx="6" fill="${color}" opacity="${over ? 1 : 0.82}"/>`;
+  if (over) {
+    html += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="7" fill="none" stroke="#e53935" stroke-width="2.5"/>`;
+  }
+  html += `<circle cx="${x+12}" cy="${y+12}" r="9" fill="rgba(0,0,0,0.3)"/>`;
+  html += `<text x="${x+12}" y="${y+16}" text-anchor="middle" font-size="9" fill="#fff" font-weight="800" font-family="Inter,sans-serif">${opNum}</text>`;
+  html += `<text x="${x+w/2+4}" y="${y+h/2-5}" text-anchor="middle" font-size="11" fill="#fff" font-weight="600" font-family="Inter,sans-serif">${label}</text>`;
+  const ctLabel = over ? `⚠ ${ct}с` : `${ct}с`;
+  html += `<text x="${x+w/2+4}" y="${y+h/2+9}" text-anchor="middle" font-size="11" fill="#fff" font-weight="800" font-family="Inter,sans-serif">${ctLabel} (${pct}%)</text>`;
+  return html;
+}
+
+// ── U-shape SVG diagram ──
+function renderUShape(assignments) {
+  const svg = document.getElementById('ushapeSvg');
+  if (!svg) return;
+  const takt = getTakt();
+  const ops  = state.ops;
+  const N    = ops.length;
+  const leftCount = Math.floor(N / 2);
+  const hasBottom = (N % 2) === 1;
+
+  // Layout constants
+  const bW = 90, bH = 54;
+  const aGap = 80;
+  const rH   = 76;
+  const mL = 18, mR = 18, mT = 50, mB = 14;
+
+  const svgW = mL + bW + aGap + bW + mR;
+  const svgH = mT + leftCount * rH + (hasBottom ? bH + 12 : 0) + mB;
+
+  svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+  svg.setAttribute('width', svgW);
+  svg.setAttribute('height', svgH);
+  svg.style.maxWidth = '100%';
+
+  // Build opIndex → {color, num}
+  const opAssign = {};
+  assignments.forEach((asgn, ai) => {
+    asgn.indices.forEach(idx => { opAssign[idx] = { color: asgn.color, num: ai + 1 }; });
+  });
+
+  const lArmX = mL, rArmX = mL + bW + aGap;
+  const lCX   = mL + bW / 2, rCX = rArmX + bW / 2;
+  let html = '';
+
+  // ── Entry / Exit labels ──
+  html += `<text x="${lCX}" y="15" text-anchor="middle" font-size="10" fill="#9e9e9e" font-weight="700" font-family="Inter,sans-serif">ВХОД ↓</text>`;
+  html += `<text x="${rCX}" y="15" text-anchor="middle" font-size="10" fill="#9e9e9e" font-weight="700" font-family="Inter,sans-serif">ВЫХОД ↑</text>`;
+  html += `<line x1="${lCX}" y1="18" x2="${lCX}" y2="${mT-4}" stroke="#d0d0d0" stroke-width="1.5"/>`;
+  html += `<line x1="${rCX}" y1="18" x2="${rCX}" y2="${mT-4}" stroke="#d0d0d0" stroke-width="1.5"/>`;
+
+  // ── Flow connectors ──
+  // Left arm (down between boxes)
+  for (let r = 0; r < leftCount - 1; r++) {
+    html += `<line x1="${lCX}" y1="${mT + r*rH + bH}" x2="${lCX}" y2="${mT + (r+1)*rH}" stroke="#d0d0d0" stroke-width="2"/>`;
+  }
+  // Right arm (down between boxes, flow direction is up = exit direction)
+  for (let r = 0; r < leftCount - 1; r++) {
+    html += `<line x1="${rCX}" y1="${mT + r*rH + bH}" x2="${rCX}" y2="${mT + (r+1)*rH}" stroke="#d0d0d0" stroke-width="2"/>`;
+  }
+  // Bottom
+  const botTop = mT + (leftCount - 1) * rH + bH;
+  if (hasBottom) {
+    // Vertical lines from last arm boxes to bottom box
+    html += `<line x1="${lCX}" y1="${botTop}" x2="${lCX}" y2="${mT + leftCount*rH}" stroke="#d0d0d0" stroke-width="2"/>`;
+    html += `<line x1="${rCX}" y1="${botTop}" x2="${rCX}" y2="${mT + leftCount*rH}" stroke="#d0d0d0" stroke-width="2"/>`;
+  } else {
+    // Horizontal connector at bottom
+    const btY = botTop + 10;
+    html += `<line x1="${lCX}" y1="${botTop}" x2="${lCX}" y2="${btY}" stroke="#d0d0d0" stroke-width="2"/>`;
+    html += `<line x1="${rCX}" y1="${botTop}" x2="${rCX}" y2="${btY}" stroke="#d0d0d0" stroke-width="2"/>`;
+    html += `<line x1="${lCX}" y1="${btY}" x2="${rCX}" y2="${btY}" stroke="#d0d0d0" stroke-width="2"/>`;
+  }
+
+  // ── Left arm boxes (ops[0]..ops[leftCount-1]) ──
+  for (let r = 0; r < leftCount; r++) {
+    const idx = r;
+    const a   = opAssign[idx] || { color:'#9e9e9e', num:'?' };
+    html += drawUBox(lArmX, mT + r*rH, bW, bH, ops[idx].name, getBalancedCT(ops[idx]), a.num, a.color, takt);
+  }
+
+  // ── Right arm boxes (ops[N-1]..ops[leftCount+hasBottom], displayed top→bottom) ──
+  for (let r = 0; r < leftCount; r++) {
+    const idx = N - 1 - r;
+    const a   = opAssign[idx] || { color:'#9e9e9e', num:'?' };
+    html += drawUBox(rArmX, mT + r*rH, bW, bH, ops[idx].name, getBalancedCT(ops[idx]), a.num, a.color, takt);
+  }
+
+  // ── Bottom box (odd N) ──
+  if (hasBottom) {
+    const idx = leftCount;
+    const a   = opAssign[idx] || { color:'#9e9e9e', num:'?' };
+    html += drawUBox(lArmX, mT + leftCount*rH, bW + aGap, bH, ops[idx].name, getBalancedCT(ops[idx]), a.num, a.color, takt);
+  }
+
+  // ── Walking path arrows for paired operators ──
+  assignments.forEach((asgn) => {
+    if (asgn.indices.length < 2) return;
+    const [iA, iB] = asgn.indices;
+    // iA is left arm at row iA; iB is right arm displayed at row (N-1-iB)
+    const rowA = iA, rowB = N - 1 - iB;
+    if (rowA !== rowB) return;
+    const y   = mT + rowA * rH + bH / 2;
+    const x1  = lArmX + bW + 5, x2 = rArmX - 5;
+    const mid = (x1 + x2) / 2;
+    html += `<path d="M${x1} ${y} Q${mid} ${y - 16} ${x2} ${y}" stroke="${asgn.color}" stroke-width="2" fill="none" opacity="0.55" stroke-dasharray="6,4"/>`;
+    html += `<polygon points="${x2},${y} ${x2-9},${y-4} ${x2-9},${y+4}" fill="${asgn.color}" opacity="0.55"/>`;
+    html += `<polygon points="${x1},${y} ${x1+9},${y-4} ${x1+9},${y+4}" fill="${asgn.color}" opacity="0.55"/>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+//  RENDER ALL
+// ══════════════════════════════════════════
+function renderAll() {
+  const takt = getTakt();
+  document.getElementById('taktDisplay').textContent = takt.toFixed(1) + ' с';
+  renderOpsTable();
+  renderResults();
+  renderChart();
+  renderBalance();
+  renderYamazumi();
+  renderOperators();
+}
+
+// ══════════════════════════════════════════
+//  EVENTS
+// ══════════════════════════════════════════
+document.getElementById('availTime').addEventListener('input', function () {
+  state.availTime = Math.max(60, parseInt(this.value) || 480);
+  renderAll();
+});
+document.getElementById('demand').addEventListener('input', function () {
+  state.demand = Math.max(1, parseInt(this.value) || 300);
+  renderAll();
+});
+
+window.addEventListener('resize', () => { renderChart(); renderYamazumi(); renderUShape(computeUShapeAssignment()); });
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+renderAll();
+</script>
+</body>
+</html>

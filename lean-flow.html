@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lean Flow — Симулятор БПЛА «Герань» | LeanPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#1a6b3c;--gd:#134d2c;--gl:#e8f5ee;--gm:#d4eedf;
+  --red:#e53935;--rdl:#ffebee;--rdm:#ffcdd2;
+  --blue:#1976d2;--bl:#e3f2fd;
+  --yellow:#f5a623;--yl:#fff8e1;
+  --text:#1a1a2e;--muted:#6b7280;--border:#e5e7eb;
+  --bg:#f8faf9;--white:#fff;
+  --r:12px;--sh:0 4px 24px rgba(0,0,0,.09);--shl:0 12px 48px rgba(0,0,0,.13);
+  --t:.22s ease;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* HEADER */
+.lf-header{background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;box-shadow:var(--sh)}
+.lf-hinner{max-width:1100px;margin:0 auto;padding:0 20px;height:68px;display:flex;align-items:center;gap:20px}
+.lf-logo{font-size:20px;font-weight:800;text-decoration:none;color:var(--text);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.lf-logo span{color:var(--g)}
+.lf-title{flex:1;text-align:center;font-size:17px;font-weight:700;color:var(--text)}
+.lf-back{font-size:14px;font-weight:600;color:var(--muted);text-decoration:none;padding:8px 16px;border-radius:8px;border:1px solid var(--border);transition:var(--t)}
+.lf-back:hover{color:var(--g);border-color:var(--g);background:var(--gl)}
+.phase-bar{display:flex;gap:0;flex:1;justify-content:center}
+.phase-dot{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#aaa}
+.phase-dot .pd-c{width:28px;height:28px;border-radius:50%;border:2px solid #e5e7eb;background:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;transition:var(--t)}
+.phase-dot.done .pd-c{background:var(--g);border-color:var(--g);color:#fff}
+.phase-dot.active .pd-c{border-color:var(--g);color:var(--g);box-shadow:0 0 0 3px rgba(26,107,60,.18)}
+.phase-dot .pd-line{width:24px;height:2px;background:#e5e7eb;margin:0 2px}
+.phase-dot.done .pd-line{background:var(--g)}
+
+/* MAIN */
+.lf-main{max-width:1100px;margin:0 auto;padding:28px 16px 80px}
+
+/* TABS */
+.tab-bar{display:flex;gap:6px;margin-bottom:28px;flex-wrap:wrap}
+.tabBtn{background:var(--white);border:2px solid var(--border);border-radius:8px;padding:9px 20px;font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;transition:var(--t)}
+.tabBtn:hover,.tabBtn.active{background:var(--g);border-color:var(--g);color:#fff}
+
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:28px;box-shadow:var(--sh)}
+.card-green{border-color:var(--g);border-width:2px;background:linear-gradient(135deg,#fff,#f0faf5)}
+.card-red{border-color:var(--red);border-width:2px;background:linear-gradient(135deg,#fff,#fff5f5)}
+.card-blue{border-color:var(--blue);border-width:2px;background:linear-gradient(135deg,#fff,#f0f6ff)}
+.card-yellow{border-color:var(--yellow);border-width:2px;background:linear-gradient(135deg,#fff,#fffbf0)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;font-weight:700;font-size:15px;border-radius:10px;border:none;cursor:pointer;padding:13px 28px;transition:var(--t);text-decoration:none;white-space:nowrap}
+.btn-g{background:var(--g);color:#fff}.btn-g:hover{background:var(--gd);transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,107,60,.3)}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#c62828}
+.btn-outline{background:transparent;border:2px solid var(--g);color:var(--g)}.btn-outline:hover{background:var(--gl)}
+.btn-lg{padding:16px 36px;font-size:17px}
+.btn-full{width:100%}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+/* THEORY SECTION */
+.theory-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+@media(max-width:700px){.theory-grid{grid-template-columns:1fr}}
+.theory-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:24px;transition:var(--t)}
+.theory-card:hover{box-shadow:var(--sh);border-color:var(--g)}
+.theory-card .tc-icon{font-size:40px;margin-bottom:12px}
+.theory-card h3{font-size:17px;font-weight:800;margin-bottom:10px}
+.theory-card p{font-size:14px;color:var(--muted);line-height:1.65}
+.theory-card .tc-tag{display:inline-block;background:var(--gl);color:var(--g);font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px;margin-bottom:10px}
+.push-pull{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.flow-box{border-radius:10px;padding:14px;font-size:13px}
+.flow-push{background:#fff5f5;border:1px solid var(--rdm)}
+.flow-pull{background:var(--gl);border:1px solid var(--gm)}
+.flow-box strong{display:block;font-size:15px;margin-bottom:6px}
+.flow-box ul{list-style:none;display:flex;flex-direction:column;gap:3px}
+.flow-box ul li::before{margin-right:5px}
+.flow-push ul li::before{content:'✗';color:var(--red)}
+.flow-pull ul li::before{content:'✓';color:var(--g)}
+
+/* FLOW ARROWS (push vs pull diagram) */
+.flow-diagram{display:flex;align-items:center;gap:0;margin:16px 0;overflow-x:auto;padding:8px 0}
+.fd-node{background:var(--white);border:2px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;text-align:center;white-space:nowrap;flex-shrink:0;min-width:80px}
+.fd-node.blue{border-color:var(--blue);background:var(--bl)}
+.fd-node.green{border-color:var(--g);background:var(--gl)}
+.fd-node.red{border-color:var(--red);background:var(--rdl)}
+.fd-arr{font-size:20px;color:#aaa;padding:0 4px;flex-shrink:0}
+.fd-arr.push-arr{color:var(--blue)}
+.fd-arr.pull-arr{color:var(--g)}
+.fd-wip{background:#fff3cd;border:1px solid #ffd54f;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;color:#795548;white-space:nowrap;margin:0 2px;flex-shrink:0}
+
+/* CODP TIMELINE */
+.codp-line{position:relative;margin:24px 0;padding:20px 0}
+.codp-ops{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:center}
+.codp-op{border-radius:8px;padding:10px 12px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:2px solid transparent;transition:var(--t);user-select:none;min-width:80px}
+.codp-op.stock{background:#e3f2fd;color:var(--blue);border-color:#90caf9}
+.codp-op.order{background:var(--gl);color:var(--g);border-color:var(--gm)}
+.codp-op.variant{background:var(--yl);color:#795548;border-color:#ffe082}
+.codp-marker{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:12px;margin:0 4px;cursor:pointer;white-space:nowrap;transition:var(--t)}
+.codp-marker:hover{background:#b71c1c}
+.codp-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px;font-weight:600}
+
+/* ===== FACTORY FLOOR ===== */
+.factory-wrap{background:linear-gradient(160deg,#eceff1 0%,#e0e5e2 100%);border-radius:16px;border:2px solid #cfd8dc;padding:20px;overflow-x:auto;margin-bottom:20px;min-height:220px;position:relative}
+.factory-label{font-size:11px;font-weight:700;color:#90a4ae;text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.factory-line{display:flex;align-items:flex-end;gap:0;min-width:max-content}
+
+/* Raw material */
+.raw-mat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 12px}
+.raw-mat .rm-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase}
+.raw-mat .rm-stack{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:80px;justify-content:flex-end}
+.raw-unit{font-size:18px;animation:dropIn .3s}
+
+/* Connector arrows */
+.conn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 4px}
+.conn-arr{font-size:18px;color:#aaa}
+.wip-badge{background:#e53935;color:#fff;font-size:11px;font-weight:800;border-radius:10px;padding:2px 8px;min-width:26px;text-align:center;transition:var(--t)}
+.wip-badge.zero{background:#e5e7eb;color:#aaa}
+.wip-badge.warn{background:#ff9800}
+.wip-badge.high{background:var(--red);animation:wiggle .5s infinite alternate}
+.wip-stack-icons{display:flex;flex-direction:column;align-items:center;gap:1px;min-height:40px;justify-content:flex-end}
+.wip-icon{font-size:14px}
+
+/* Station box */
+.station{display:flex;flex-direction:column;align-items:center;background:var(--white);border:2px solid var(--border);border-radius:10px;padding:12px 10px;min-width:100px;max-width:110px;position:relative;transition:var(--t)}
+.station.active{border-color:var(--g);box-shadow:0 0 0 3px rgba(26,107,60,.15)}
+.station.bottleneck{border-color:var(--red);box-shadow:0 0 0 3px rgba(229,57,53,.15)}
+.station.idle{opacity:.6;border-style:dashed}
+.station.injured{border-color:var(--yellow);background:#fffde7}
+.station .st-icon{font-size:28px;margin-bottom:4px}
+.station .st-worker{font-size:22px}
+.station .st-name{font-size:11px;font-weight:700;text-align:center;line-height:1.3;margin-bottom:6px;color:var(--text)}
+.station .st-time{font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px;margin-top:4px}
+.station .st-time.ok{background:var(--gl);color:var(--g)}
+.station .st-time.over{background:var(--rdl);color:var(--red)}
+.station .st-time.warn{background:var(--yl);color:#795548}
+.station .st-alert{position:absolute;top:-10px;right:-10px;font-size:18px;animation:pulse 1s infinite}
+.station .st-processing{position:absolute;bottom:-10px;font-size:16px;animation:spin 1s linear infinite}
+.station .st-tag{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;white-space:nowrap}
+.station .st-tag.green{background:var(--g)}
+.station .st-tag.red{background:var(--red)}
+
+/* Output done */
+.done-box{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 12px}
+.done-count{font-size:36px;font-weight:800;color:var(--g);line-height:1}
+.done-label{font-size:11px;font-weight:600;color:var(--muted)}
+.done-units{display:flex;flex-wrap:wrap;gap:2px;max-width:80px;justify-content:center;min-height:40px;align-items:center}
+.done-unit{font-size:16px;animation:popIn .3s}
+
+/* Pull kanban signals */
+.kanban-row{display:flex;align-items:center;gap:0;min-width:max-content;margin-top:8px}
+.kb-signal{background:var(--yl);border:1px solid #ffd54f;border-radius:4px;font-size:10px;font-weight:700;color:#795548;padding:2px 6px;white-space:nowrap;opacity:0;transition:opacity .3s}
+.kb-signal.visible{opacity:1}
+.kb-arr{font-size:14px;color:var(--yellow);padding:0 2px}
+
+/* SIMULATION CONTROLS */
+.sim-controls{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.sim-speed{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.sim-timer{font-size:28px;font-weight:800;color:var(--g);font-variant-numeric:tabular-nums;min-width:80px}
+.sim-demand-bar{flex:1;min-width:200px}
+.sim-demand-bar .db-label{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px;display:flex;justify-content:space-between}
+.progress-bar{height:18px;background:#e5e7eb;border-radius:9px;overflow:hidden;position:relative}
+.progress-fill{height:100%;border-radius:9px;transition:width .5s}
+.progress-fill.green{background:var(--g)}
+.progress-fill.yellow{background:#f5a623}
+.progress-fill.red{background:var(--red)}
+.progress-target{position:absolute;top:0;bottom:0;width:2px;background:#1a1a2e;opacity:.4}
+
+/* METRICS ROW */
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:600px){.metrics-row{grid-template-columns:1fr 1fr}}
+.metric-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.metric-card .mc-val{font-size:32px;font-weight:800;line-height:1;margin-bottom:4px}
+.metric-card .mc-label{font-size:12px;color:var(--muted);font-weight:600}
+.metric-card.good .mc-val{color:var(--g)}
+.metric-card.bad .mc-val{color:var(--red)}
+.metric-card.warn .mc-val{color:var(--yellow)}
+.metric-card.neutral .mc-val{color:var(--blue)}
+
+/* EVENT LOG */
+.event-log{background:#1a1a2e;border-radius:10px;padding:16px;max-height:140px;overflow-y:auto;font-size:13px;font-family:monospace;line-height:1.7}
+.ev-line{color:#aaa}
+.ev-line.ev-ok{color:#4caf50}
+.ev-line.ev-err{color:#ef5350}
+.ev-line.ev-warn{color:#ffa726}
+.ev-line.ev-info{color:#42a5f5}
+
+/* LADM TABLE */
+.ladm{width:100%;border-collapse:collapse;margin:16px 0}
+.ladm th{background:var(--gl);color:var(--g);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding:10px 12px;text-align:left;border:1px solid var(--gm)}
+.ladm td{padding:10px 12px;border:1px solid var(--border);font-size:14px;vertical-align:middle}
+.ladm tr:hover td{background:var(--bg)}
+.ladm tr.bottleneck td{background:#fff5f5}
+.time-bar{height:20px;border-radius:4px;position:relative;background:#e5e7eb;min-width:60px;overflow:visible}
+.time-bar-va{height:100%;border-radius:4px;background:var(--g);display:inline-block;vertical-align:top;transition:width .5s}
+.time-bar-waste{height:100%;border-radius:0 4px 4px 0;background:#ef9a9a;display:inline-block;vertical-align:top;transition:width .5s}
+.time-bar-takt{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--red);z-index:2}
+.time-bar-takt::before{content:'Такт';position:absolute;top:-18px;left:2px;font-size:9px;color:var(--red);font-weight:800;white-space:nowrap}
+.worker-assign{display:flex;flex-wrap:wrap;gap:4px}
+.wk-chip{background:var(--gl);color:var(--g);border:1px solid var(--gm);border-radius:6px;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer;transition:var(--t)}
+.wk-chip:hover{background:var(--gm)}
+.wk-chip.sel{background:var(--g);color:#fff;border-color:var(--gd)}
+
+/* WORKER BINS for LADM assignment */
+.worker-bins{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+@media(max-width:600px){.worker-bins{grid-template-columns:1fr}}
+.worker-bin{background:var(--white);border:2px dashed var(--border);border-radius:10px;padding:16px;min-height:100px;transition:var(--t)}
+.worker-bin.balanced{border-color:var(--g);background:var(--gl)}
+.worker-bin.over{border-color:var(--red);background:var(--rdl)}
+.wb-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:700;font-size:14px}
+.wb-ops{display:flex;flex-wrap:wrap;gap:6px;min-height:40px;margin-bottom:10px}
+.wb-op{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;transition:var(--t);display:flex;align-items:center;gap:4px}
+.wb-op:hover{border-color:var(--red);background:var(--rdl)}
+.wb-time-bar{height:12px;border-radius:6px;background:#e5e7eb;overflow:hidden;position:relative}
+.wb-time-fill{height:100%;border-radius:6px;transition:width .4s}
+
+/* ENTRY POINT SELECTOR */
+.ep-timeline{display:flex;align-items:center;gap:4px;margin:20px 0;flex-wrap:wrap;justify-content:center}
+.ep-op{border-radius:8px;padding:10px 12px;font-size:12px;font-weight:700;text-align:center;min-width:85px;border:2px solid transparent;cursor:pointer;transition:var(--t);flex-shrink:0}
+.ep-op.forecast{background:#e3f2fd;color:var(--blue);border-color:#90caf9}
+.ep-op.made-to-order{background:var(--gl);color:var(--g);border-color:var(--gm)}
+.ep-op.variant{background:var(--yl);color:#795548;border-color:#ffe082}
+.ep-op:hover{transform:scale(1.05)}
+.ep-cut{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:0 4px;flex-shrink:0}
+.ep-cut .cut-line{width:3px;height:40px;background:#aaa;border-radius:2px;transition:var(--t)}
+.ep-cut .cut-label{font-size:10px;color:#aaa;font-weight:700;white-space:nowrap;transition:var(--t)}
+.ep-cut.selected .cut-line{background:var(--red)}
+.ep-cut.selected .cut-label{color:var(--red)}
+.ep-cut:hover .cut-line{background:var(--yellow)}
+.ep-cut:hover .cut-label{color:var(--yellow)}
+.ep-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;font-weight:600;margin-top:12px;justify-content:center}
+.ep-legend span{display:flex;align-items:center;gap:4px}
+.ep-legend .dot{width:12px;height:12px;border-radius:3px}
+
+/* COMPARISON TABLE */
+.compare-table{width:100%;border-collapse:collapse;margin:16px 0}
+.compare-table th{background:#1a1a2e;color:#fff;padding:12px 16px;font-size:13px;font-weight:700;text-align:left}
+.compare-table td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle}
+.compare-table tr:nth-child(even) td{background:var(--bg)}
+.compare-table .r1{color:var(--red);font-weight:700}
+.compare-table .r2{color:var(--yellow);font-weight:700}
+.compare-table .r3{color:var(--g);font-weight:700}
+.trend-up{color:var(--g)}
+.trend-down{color:var(--red)}
+
+/* SECTION TITLES */
+.phase-title{font-size:26px;font-weight:800;margin-bottom:8px}
+.phase-sub{font-size:16px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+.section-h{font-size:18px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.tag-pill{display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.tag-green{background:var(--gl);color:var(--g)}
+.tag-red{background:var(--rdl);color:var(--red)}
+.tag-yellow{background:var(--yl);color:#795548}
+.tag-blue{background:var(--bl);color:var(--blue)}
+
+/* CERTIFICATE */
+.cert-wrap{background:var(--white);border:3px solid var(--g);border-radius:20px;padding:40px;text-align:center;max-width:600px;margin:0 auto 32px}
+.cert-icon{font-size:72px;margin-bottom:12px}
+.cert-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.cert-kpi{background:var(--gl);border-radius:10px;padding:14px 8px}
+.cert-kpi strong{display:block;font-size:26px;font-weight:800;color:var(--g)}
+.cert-kpi span{font-size:11px;color:var(--muted);font-weight:600}
+
+/* HIGHLIGHT BOX */
+.insight-box{border-left:4px solid var(--g);background:var(--gl);border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:14px;line-height:1.65;color:var(--gd)}
+.insight-box.red{border-color:var(--red);background:var(--rdl);color:#b71c1c}
+.insight-box.yellow{border-color:var(--yellow);background:var(--yl);color:#5d4037}
+.insight-box.blue{border-color:var(--blue);background:var(--bl);color:#0d47a1}
+.insight-box strong{font-size:15px}
+
+/* VARIANT BADGES */
+.variant-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;border:2px solid transparent}
+.var-1{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
+.var-2{background:#efebe9;color:#4e342e;border-color:#bcaaa4}
+.var-3{background:#f3e5f5;color:#4a148c;border-color:#ce93d8}
+
+/* ANIMATIONS */
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes dropIn{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes slideIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes wiggle{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes droneMove{from{transform:translateX(-30px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes confettiFall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes flashOk{0%,100%{background:var(--white)}50%{background:#d4edda;border-color:var(--g)}}
+@keyframes flashErr{0%,100%{background:var(--white)}50%{background:#ffd6d6;border-color:var(--red)}}
+
+.anim-slide{animation:slideIn .4s ease}
+
+/* FEEDBACK */
+.lf-toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:#1a1a2e;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;opacity:0;transition:.3s;z-index:1000;pointer-events:none;text-align:center;max-width:90vw}
+.lf-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.lf-toast.ok{background:var(--g)}
+.lf-toast.err{background:var(--red)}
+.lf-toast.warn{background:#f5a623}
+
+/* COLLAPSIBLE */
+.collapsible{cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:4px;font-weight:700;font-size:15px;transition:var(--t)}
+.collapsible:hover{border-color:var(--g);background:var(--gl)}
+.coll-body{display:none;padding:18px;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;background:var(--white);font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:12px}
+.coll-body.open{display:block}
+
+@media(max-width:700px){
+  .metrics-row{grid-template-columns:1fr 1fr}
+  .factory-wrap{padding:12px}
+  .worker-bins{grid-template-columns:1fr}
+  .phase-title{font-size:21px}
+  .cert-kpi-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="lf-header">
+  <div class="lf-hinner">
+    <a href="index.html" class="lf-logo"><span>⬡</span>LeanPro</a>
+    <div class="phase-bar" id="phaseDots"></div>
+    <a href="index.html" class="lf-back">← Назад</a>
+  </div>
+</header>
+
+<div class="lf-main" id="app"></div>
+<div class="lf-toast" id="toast"></div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const OPS = [
+  {id:1, name:'Подготовка корпуса', short:'Корпус',    icon:'📦', time:60, waste:60, variant:false},
+  {id:2, name:'Монтаж крыльев',     short:'Крылья',    icon:'✈️', time:90, waste:45, variant:false},
+  {id:3, name:'Двигатель',          short:'Двигатель', icon:'⚙️', time:75, waste:30, variant:false},
+  {id:4, name:'Навигация',          short:'Навигация', icon:'🛰️', time:65, waste:25, variant:false},
+  {id:5, name:'Управление',         short:'Управл.',   icon:'🎮', time:80, waste:20, variant:false},
+  {id:6, name:'Финальная сборка',   short:'Сборка',    icon:'🔧', time:55, waste:15, variant:false},
+  {id:7, name:'Окраска',            short:'Окраска',   icon:'🎨', time:40, waste:10, variant:true },
+  {id:8, name:'ОТК и упаковка',     short:'ОТК',       icon:'✅', time:50, waste:15, variant:false},
+];
+const TOTAL_VA = OPS.reduce((a,o)=>a+o.time,0); // 515s
+
+const VARIANTS = [
+  {id:'g1', name:'Герань-1', color:'Зелёная',   range:'500 км', emoji:'🟢', addTime:{3:0,  4:0}},
+  {id:'g2', name:'Герань-2', color:'Коричневая', range:'700 км', emoji:'🟤', addTime:{3:15, 4:0}},
+  {id:'g3', name:'Герань-3', color:'Чёрная',     range:'1000 км',emoji:'⚫', addTime:{3:0,  4:30}},
+];
+
+// Pre-scripted round outcomes
+const ROUNDS = {
+  1: {demand:10, takt:360, produced:6,  wip:9,  injuries:2, efficiency:60,  waste_total:220},
+  2: {demand:16, takt:225, produced:11, wip:7,  injuries:0, efficiency:69,  waste_total:0},
+  3: {demand:22, takt:164, produced:20, wip:2,  injuries:0, efficiency:91,  waste_total:0, variants:true},
+};
+
+// Event scripts for each round simulation (seconds in real-time at 1s=~5min factory time)
+const SIM_EVENTS = {
+  1: [
+    {t:1,  type:'log', msg:'⏱ Смена началась. Поиск инструментов...', cls:'ev-warn'},
+    {t:2,  type:'wip', station:1, val:2},
+    {t:3,  type:'log', msg:'📦 Корпуса найдены (поиск занял 60 сек!)', cls:'ev-warn'},
+    {t:4,  type:'wip', station:2, val:3},
+    {t:5,  type:'injury', station:2, msg:'🚑 Травма! Сотрудник споткнулся об оснастку на полу. Остановка 20 мин.'},
+    {t:6,  type:'wip', station:1, val:3},
+    {t:7,  type:'log', msg:'🔍 Инструкция устарела — поиск актуальной...', cls:'ev-warn'},
+    {t:8,  type:'complete', val:1},
+    {t:9,  type:'wip', station:2, val:5},
+    {t:10, type:'wip', station:3, val:2},
+    {t:10, type:'log', msg:'⚠️ Узкое место: очередь перед «Крыльями» растёт!', cls:'ev-err'},
+    {t:11, type:'injury', station:4, msg:'🚑 Ещё травма! Детали не в своих местах. Остановка 20 мин.'},
+    {t:12, type:'complete', val:2},
+    {t:13, type:'wip', station:2, val:7},
+    {t:13, type:'wip', station:5, val:2},
+    {t:14, type:'log', msg:'🔄 Переделка: обнаружен дефект на финальном ОТК!', cls:'ev-err'},
+    {t:14, type:'complete', val:3},
+    {t:15, type:'log', msg:'📊 Конец смены. Анализ результатов...', cls:'ev-info'},
+    {t:15, type:'complete', val:6},
+    {t:15, type:'wip', station:2, val:9},
+  ],
+  2: [
+    {t:1,  type:'log', msg:'✅ 5S выполнен. Рабочие места чистые!', cls:'ev-ok'},
+    {t:2,  type:'wip', station:1, val:1},
+    {t:3,  type:'complete', val:1},
+    {t:4,  type:'wip', station:2, val:2},
+    {t:5,  type:'log', msg:'⚠️ Такт=225с. Такт-время соблюдаем...', cls:'ev-info'},
+    {t:6,  type:'complete', val:3},
+    {t:7,  type:'wip', station:2, val:4},
+    {t:8,  type:'log', msg:'📦 Узкое место: «Крылья» 90с — ниже такта, но создаёт очередь', cls:'ev-warn'},
+    {t:9,  type:'complete', val:5},
+    {t:10, type:'wip', station:2, val:6},
+    {t:11, type:'log', msg:'🔄 Нет балансировки: Op5 и Op7 простаивают', cls:'ev-warn'},
+    {t:12, type:'complete', val:8},
+    {t:13, type:'wip', station:2, val:7},
+    {t:14, type:'log', msg:'⏱ Конец смены. Спрос 16 ед. — выпущено 11.', cls:'ev-err'},
+    {t:15, type:'complete', val:11},
+  ],
+  3: [
+    {t:1,  type:'log', msg:'🔄 Pull-система: Kanban-сигналы активны', cls:'ev-ok'},
+    {t:2,  type:'kanban', from:3, to:2},
+    {t:3,  type:'log', msg:'📦 Заказ: Герань-1 (зелёная, 500км) — ВОШЁЛ в поток после оп.6', cls:'ev-info'},
+    {t:3,  type:'complete', val:2},
+    {t:4,  type:'kanban', from:4, to:3},
+    {t:5,  type:'log', msg:'📦 Заказ: Герань-3 (чёрная, 1000км) — кастомизация: навигация +30с', cls:'ev-info'},
+    {t:5,  type:'complete', val:5},
+    {t:6,  type:'kanban', from:2, to:1},
+    {t:7,  type:'log', msg:'✅ Поздняя дифференциация: общая подсборка → окраска по заказу', cls:'ev-ok'},
+    {t:8,  type:'complete', val:8},
+    {t:9,  type:'log', msg:'📦 Заказ: Герань-2 (коричневая, 700км) — двигатель +15с', cls:'ev-info'},
+    {t:10, type:'complete', val:12},
+    {t:11, type:'wip', station:8, val:1},
+    {t:11, type:'log', msg:'⚡ Линия сбалансирована: все 4 рабочих загружены ≥85%', cls:'ev-ok'},
+    {t:13, type:'complete', val:16},
+    {t:14, type:'log', msg:'🎯 Конец смены: 20/22 ед., 3 варианта, WIP=2', cls:'ev-ok'},
+    {t:15, type:'complete', val:20},
+  ],
+};
+
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  phase: 'theory',
+  round: 0,
+  simRunning: false,
+  simTimer: null,
+  simT: 0,
+
+  // Metrics current
+  wip: [0,0,0,0,0,0,0,0],  // wip before each station (index 0 = raw)
+  done: 0,
+  injured: 0,
+  log: [],
+  kanbanActive: [],
+
+  // Imp1 state
+  fiveSSelected: new Set(),
+  ctValue: '',
+
+  // Imp2 state
+  workerOps: {1:[], 2:[], 3:[], 4:[]},
+  selectedOp: null,
+  entryPoint: null,  // op id
+
+  // Scores
+  scores: {r1:0, r2:0, r3:0, imp1:0, imp2:0},
+};
+
+// ============================================================
+// PHASES
+// ============================================================
+const PHASES = [
+  {id:'theory', label:'Теория'},
+  {id:'r1',     label:'Тур 1'},
+  {id:'imp1',   label:'5S + CT'},
+  {id:'r2',     label:'Тур 2'},
+  {id:'imp2',   label:'LADM'},
+  {id:'r3',     label:'Тур 3'},
+  {id:'final',  label:'Итоги'},
+];
+const PHASE_ORDER = PHASES.map(p=>p.id);
+
+function phaseIdx(id){ return PHASE_ORDER.indexOf(id); }
+
+function updatePhaseDots(){
+  const cur = phaseIdx(S.phase);
+  document.getElementById('phaseDots').innerHTML = PHASES.map((p,i)=>{
+    const cls = i<cur?'done':i===cur?'active':'';
+    const line = i<PHASES.length-1?`<div class="pd-line ${i<cur?'done':''}"></div>`:'';
+    return `<div class="phase-dot ${cls}"><div class="pd-c">${i<cur?'✓':i+1}</div><div style="font-size:10px;font-weight:700;color:${i===cur?'var(--g)':'#aaa'};margin-top:3px">${p.label}</div></div>${line}`;
+  }).join('');
+}
+
+// ============================================================
+// RENDER ROUTER
+// ============================================================
+function render(){
+  updatePhaseDots();
+  const app = document.getElementById('app');
+  const fns = {theory:renderTheory, r1:renderR1, imp1:renderImp1, r2:renderR2, imp2:renderImp2, r3:renderR3, final:renderFinal};
+  app.innerHTML = '';
+  if(fns[S.phase]) fns[S.phase](app);
+}
+
+function goPhase(id){ S.phase=id; S.simRunning=false; clearInterval(S.simTimer); S.simT=0; render(); }
+
+// ============================================================
+// THEORY
+// ============================================================
+function renderTheory(el){
+  el.innerHTML = `
+  <div class="anim-slide">
+    <div class="phase-title">🌊 Lean Flow — теория и симулятор</div>
+    <div class="phase-sub">Изучи концепции вытягивающего потока, затем примени их в симуляторе сборки БПЛА «Герань».</div>
+
+    <div class="theory-grid">
+      <div class="theory-card">
+        <div class="tc-tag">Концепция 1</div>
+        <div class="tc-icon">⬅️➡️</div>
+        <h3>Толкающий vs Вытягивающий поток</h3>
+        <p>В толкающей (PUSH) системе каждая операция производит столько, сколько может, передавая продукт дальше. В вытягивающей (PULL) — только когда следующая операция готова принять.</p>
+        <div class="push-pull">
+          <div class="flow-box flow-push"><strong>🔴 PUSH — толкать</strong><ul>
+            <li>Производство по плану</li><li>Огромные запасы WIP</li>
+            <li>Дефекты обнаруживаются поздно</li><li>Перепроизводство</li>
+          </ul></div>
+          <div class="flow-box flow-pull"><strong>🟢 PULL — тянуть</strong><ul>
+            <li>Производство по сигналу</li><li>Минимальный WIP</li>
+            <li>Дефекты видны сразу</li><li>Точно в срок</li>
+          </ul></div>
+        </div>
+      </div>
+
+      <div class="theory-card">
+        <div class="tc-tag">Концепция 2</div>
+        <div class="tc-icon">🔄</div>
+        <h3>Непрерывный поток (One-Piece Flow)</h3>
+        <p>Вместо партий — обработка одного изделия за раз, передача сразу на следующую операцию. Размер партии = 1.</p>
+        <div class="flow-diagram">
+          <div class="fd-node blue">Оп 1</div><div class="fd-arr push-arr">→</div>
+          <div class="fd-wip">📦📦📦📦📦</div>
+          <div class="fd-arr push-arr">→</div><div class="fd-node blue">Оп 2</div>
+        </div>
+        <div style="font-size:12px;color:var(--red);margin-bottom:6px">Партия: WIP накапливается между операциями</div>
+        <div class="flow-diagram">
+          <div class="fd-node green">Оп 1</div><div class="fd-arr pull-arr">→</div>
+          <div class="fd-node green">Оп 2</div><div class="fd-arr pull-arr">→</div>
+          <div class="fd-node green">Оп 3</div>
+        </div>
+        <div style="font-size:12px;color:var(--g)">One-Piece Flow: изделие не ждёт</div>
+      </div>
+
+      <div class="theory-card">
+        <div class="tc-tag">Концепция 3</div>
+        <div class="tc-icon">📍</div>
+        <h3>Точка вхождения заказа (CODP)</h3>
+        <p>Customer Order Decoupling Point — точка, после которой производство управляется конкретным заказом, а не прогнозом.</p>
+        <div class="ep-legend" style="margin:10px 0">
+          <span><span class="dot" style="background:#e3f2fd;border:1px solid #90caf9;display:inline-block"></span> Под прогноз (make-to-stock)</span>
+          <span><span class="dot" style="background:var(--gl);border:1px solid var(--gm);display:inline-block"></span> Под заказ (make-to-order)</span>
+          <span><span class="dot" style="background:var(--red);display:inline-block;border-radius:3px"></span> CODP</span>
+        </div>
+        <div class="flow-diagram">
+          <div class="fd-node blue" style="font-size:10px">Оп 1-4</div>
+          <div class="fd-arr" style="color:var(--red);font-weight:800;font-size:22px">|</div>
+          <div class="fd-node green" style="font-size:10px">Оп 5-8</div>
+        </div>
+        <p style="font-size:12px;margin-top:6px">Чем позже CODP → быстрее реакция на заказ, но больше незавершённого производства</p>
+      </div>
+
+      <div class="theory-card">
+        <div class="tc-tag">Концепция 4</div>
+        <div class="tc-icon">🎨</div>
+        <h3>Поздняя дифференциация</h3>
+        <p>Максимально откладывай момент разветвления продукта на варианты. Сначала создай общую подсборку — затем кастомизируй под конкретный заказ.</p>
+        <div class="flow-diagram" style="flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:4px">
+            <div class="fd-node" style="background:#e8eaf6;border-color:#7986cb;font-size:10px">Оп 1-6<br>общие</div>
+            <div class="fd-arr" style="color:var(--red);font-weight:800">|</div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div class="fd-node green" style="font-size:10px;padding:4px 8px">🟢 Герань-1</div>
+              <div class="fd-node green" style="font-size:10px;padding:4px 8px">🟤 Герань-2</div>
+              <div class="fd-node green" style="font-size:10px;padding:4px 8px">⚫ Герань-3</div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12px;margin-top:8px">↑ CODP между Оп 6 и Оп 7 (Окраска). Прогнозируем на уровне общей сборки — не вариантов!</p>
+      </div>
+    </div>
+
+    <div class="card card-green" style="text-align:center;padding:36px">
+      <div style="font-size:56px;margin-bottom:16px">🚁</div>
+      <div style="font-size:22px;font-weight:800;margin-bottom:8px">Симулятор: цех сборки БПЛА «Герань»</div>
+      <div style="font-size:16px;color:var(--muted);margin-bottom:8px">3 производственных тура · 8 операций · реальные Lean-решения</div>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:28px">
+        <span class="tag-pill tag-red">Тур 1: Push + плохой 5S</span>
+        <span class="tag-pill tag-yellow">Тур 2: 5S + балансировка</span>
+        <span class="tag-pill tag-green">Тур 3: Pull + дифференциация</span>
+      </div>
+      <button class="btn btn-g btn-lg" onclick="goPhase('r1')">▶ Запустить симулятор</button>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// FACTORY FLOOR RENDERER
+// ============================================================
+function renderFactory(opts={}){
+  const {fiveS=false, pull=false, workers=8, entryPoint=null, highlightBottleneck=false,
+         showKanban=false, round=1} = opts;
+  const bottleneckId = 2; // Op 2 (Wings) is always bottleneck in R1/R2
+
+  // Compute effective op times
+  const opTimes = OPS.map(o => fiveS ? o.time : o.time+o.waste);
+  const takt = ROUNDS[round] ? ROUNDS[round].takt : 360;
+
+  let html = `<div class="factory-wrap">`;
+  html += `<div class="factory-label">
+    🏭 Производственная линия — ${fiveS?'✅ 5S выполнен':'❌ 5S не сделан'} &nbsp;|&nbsp;
+    ${pull?'🟢 PULL-поток':'🔴 PUSH-поток'} &nbsp;|&nbsp;
+    👷 ${workers} рабочих &nbsp;|&nbsp; ⏱ Такт: ${takt}с
+  </div>`;
+
+  html += `<div class="factory-line" id="factoryLine">`;
+
+  // Raw material
+  html += `<div class="raw-mat">
+    <div class="rm-stack">
+      ${Array(fiveS?3:8).fill().map(()=>`<div class="raw-unit">📦</div>`).join('')}
+    </div>
+    <div class="rm-label">Сырьё</div>
+  </div>`;
+
+  OPS.forEach((op,i)=>{
+    const t = opTimes[i];
+    const isBottleneck = highlightBottleneck && op.id===bottleneckId;
+    const isVariant = op.variant;
+    const isEntryPoint = entryPoint && op.id===entryPoint;
+    const timeClass = t>takt?'over':t>takt*0.85?'warn':'ok';
+    const wipCount = S.wip[i] || 0;
+    const wipClass = wipCount===0?'zero':wipCount>=5?'high':wipCount>=3?'warn':'';
+
+    // Connector with WIP
+    html += `<div class="conn">
+      <div class="wip-stack-icons">${Array(Math.min(wipCount,5)).fill().map(()=>`<div class="wip-icon">🚁</div>`).join('')}</div>
+      <div class="wip-badge ${wipClass}" id="wip${i}">${wipCount}</div>
+      <div class="conn-arr">${pull?'🔄':'→'}</div>
+    </div>`;
+
+    // Station
+    const workerEmoji = S.injured > 0 && op.id===bottleneckId && round===1 ? '🤕' : '👷';
+    html += `<div class="station ${isBottleneck?'bottleneck':''} ${fiveS&&!isBottleneck?'active':''}" id="st${op.id}">
+      ${isBottleneck&&highlightBottleneck?`<div class="st-tag red">⚠️ Узкое место</div>`:''}
+      ${isVariant?`<div class="st-tag green">Дифференциация</div>`:''}
+      ${isEntryPoint?`<div class="st-tag" style="background:var(--red)">◄ CODP</div>`:''}
+      <div class="st-icon">${op.icon}</div>
+      <div class="st-worker">${workerEmoji}</div>
+      <div class="st-name">${op.short}</div>
+      <div class="st-time ${timeClass}">${t}с${!fiveS&&op.waste>0?`<span style="color:#ef9a9a;font-size:10px"> +${op.waste}с🗑️</span>`:''}</div>
+    </div>`;
+  });
+
+  // Output
+  html += `<div class="conn"><div class="conn-arr">→</div></div>`;
+  html += `<div class="done-box">
+    <div class="done-count" id="doneCount">${S.done}</div>
+    <div class="done-label">Выпущено</div>
+    <div class="done-units" id="doneUnits">${Array(Math.min(S.done,8)).fill().map(()=>`<div class="done-unit">🚁</div>`).join('')}</div>
+  </div>`;
+
+  html += `</div>`; // factory-line
+
+  // Pull kanban row
+  if(showKanban){
+    html += `<div class="kanban-row" id="kanbanRow" style="margin-top:12px;justify-content:center;flex-wrap:wrap;gap:4px">`;
+    OPS.forEach((op,i)=>{
+      if(i<OPS.length-1){
+        const vis = S.kanbanActive.includes(op.id);
+        html += `<span class="kb-signal ${vis?'visible':''}" id="kb${op.id}">📋 К${op.id+1}</span>`;
+        html += `<span class="kb-arr">←</span>`;
+      }
+    });
+    html += `</div>`;
+  }
+
+  html += `</div>`; // factory-wrap
+  return html;
+}
+
+// ============================================================
+// SIMULATION ENGINE
+// ============================================================
+function runSim(round, opts, onDone){
+  const events = SIM_EVENTS[round] || [];
+  S.simRunning = true;
+  S.simT = 0;
+  S.wip = [0,0,0,0,0,0,0,0];
+  S.done = 0;
+  S.injured = 0;
+  S.log = [];
+  S.kanbanActive = [];
+
+  refreshFactory(opts);
+
+  S.simTimer = setInterval(()=>{
+    S.simT++;
+
+    // Fire events for this tick
+    events.filter(e=>e.t===S.simT).forEach(ev=>{
+      if(ev.type==='log'){
+        S.log.push({msg:ev.msg, cls:ev.cls||'ev-info'});
+        updateLog();
+      }
+      if(ev.type==='wip'){
+        S.wip[ev.station-1] = ev.val;
+        refreshWIP();
+      }
+      if(ev.type==='complete'){
+        S.done = ev.val;
+        refreshDone();
+      }
+      if(ev.type==='injury'){
+        S.injured++;
+        showToast(ev.msg,'err');
+        const st = document.getElementById(`st${ev.station}`);
+        if(st){ st.classList.add('injured'); setTimeout(()=>st.classList.remove('injured'),3000); }
+      }
+      if(ev.type==='kanban'){
+        S.kanbanActive.push(ev.from);
+        const kb = document.getElementById(`kb${ev.from}`);
+        if(kb){ kb.classList.add('visible'); setTimeout(()=>{kb.classList.remove('visible'); S.kanbanActive=S.kanbanActive.filter(x=>x!==ev.from);},2000); }
+      }
+    });
+
+    // Update timer display
+    const factoryMin = Math.round(S.simT * 4);
+    const td = document.getElementById('simClock');
+    if(td) td.textContent = `${factoryMin} мин`;
+
+    // Progress bar
+    const pf = document.getElementById('simProgress');
+    if(pf){ pf.style.width = (S.simT/15*100)+'%'; }
+
+    if(S.simT >= 15){
+      clearInterval(S.simTimer);
+      S.simRunning = false;
+      S.done = ROUNDS[round].produced;
+      S.wip[1] = ROUNDS[round].wip;
+      refreshDone();
+      refreshWIP();
+      setTimeout(()=>onDone(), 800);
+    }
+  }, 1000);
+}
+
+function refreshWIP(){
+  S.wip.forEach((v,i)=>{
+    const el = document.getElementById(`wip${i}`);
+    if(el){
+      el.textContent = v;
+      el.className = `wip-badge ${v===0?'zero':v>=5?'high':v>=3?'warn':''}`;
+    }
+  });
+}
+function refreshDone(){
+  const dc = document.getElementById('doneCount');
+  if(dc) dc.textContent = S.done;
+  const du = document.getElementById('doneUnits');
+  if(du) du.innerHTML = Array(Math.min(S.done,12)).fill().map(()=>`<div class="done-unit">🚁</div>`).join('');
+}
+function refreshFactory(opts){
+  const fl = document.getElementById('factoryArea');
+  if(fl) fl.innerHTML = renderFactory(opts);
+}
+function updateLog(){
+  const el = document.getElementById('eventLog');
+  if(el) el.innerHTML = S.log.map(l=>`<div class="ev-line ${l.cls}">${l.msg}</div>`).join('');
+  if(el) el.scrollTop = el.scrollHeight;
+}
+
+// ============================================================
+// ROUND 1
+// ============================================================
+function renderR1(el){
+  el.innerHTML = `<div class="anim-slide">
+    <div class="tag-pill tag-red" style="margin-bottom:12px">Тур 1 из 3</div>
+    <div class="phase-title">🔴 Хаотичный цех — PUSH + плохой 5S</div>
+    <div class="phase-sub">Спрос: <strong>10 БПЛА/смена</strong> · Такт-время: <strong>360 с/ед.</strong> · Рабочих: 8 · 5S не выполнен</div>
+
+    <div class="insight-box red">⚠️ <strong>Условия:</strong> Инструменты лежат не на местах. Инструкции устарели. Детали разбросаны. Сотрудники ищут оснастку вместо того, чтобы собирать БПЛА. Система — PUSH: каждая операция работает на максимум.</div>
+
+    <div id="factoryArea">${renderFactory({fiveS:false, pull:false, workers:8, round:1})}</div>
+
+    <div class="sim-controls">
+      <div>
+        <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px">Прошло (смена 60 мин)</div>
+        <div class="sim-timer" id="simClock">0 мин</div>
+      </div>
+      <div class="sim-demand-bar">
+        <div class="db-label"><span>Выпуск БПЛА</span><span id="simDoneLabel">0 / 10</span></div>
+        <div class="progress-bar">
+          <div class="progress-fill red" id="simProgress" style="width:0%"></div>
+          <div class="progress-target" style="left:100%"></div>
+        </div>
+      </div>
+      <div class="metrics-row" style="margin:0;grid-template-columns:repeat(3,auto)">
+        <div class="metric-card bad"><div class="mc-val" id="m-wip">0</div><div class="mc-label">ВП (WIP)</div></div>
+        <div class="metric-card bad"><div class="mc-val" id="m-inj">0</div><div class="mc-label">Травмы 🚑</div></div>
+        <div class="metric-card neutral"><div class="mc-val" id="m-done">0</div><div class="mc-label">Выпущено</div></div>
+      </div>
+    </div>
+
+    <div id="eventLog" class="event-log" style="margin-bottom:20px"><div class="ev-line ev-info">⏳ Нажмите «Запустить» для старта смены...</div></div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-red" id="btnRun1" onclick="startR1Sim()">▶ Запустить смену</button>
+      <button class="btn btn-outline" id="btnR1Next" style="display:none" onclick="goPhase('imp1')">Анализ результатов →</button>
+    </div>
+  </div>`;
+}
+
+function startR1Sim(){
+  document.getElementById('btnRun1').disabled = true;
+  // Live update metrics
+  const interval = setInterval(()=>{
+    const wipEl = document.getElementById('m-wip');
+    const injEl = document.getElementById('m-inj');
+    const doneEl = document.getElementById('m-done');
+    const doneLabel = document.getElementById('simDoneLabel');
+    if(wipEl) wipEl.textContent = Math.max(...S.wip);
+    if(injEl) injEl.textContent = S.injured;
+    if(doneEl) doneEl.textContent = S.done;
+    if(doneLabel) doneLabel.textContent = `${S.done} / 10`;
+    if(!S.simRunning){ clearInterval(interval); }
+  }, 200);
+
+  runSim(1, {fiveS:false, pull:false, workers:8, round:1}, ()=>{
+    S.scores.r1 = Math.round(S.done/ROUNDS[1].demand*100);
+    showToast('Смена завершена. Анализируем результаты...','warn');
+    setTimeout(()=>{
+      const btn = document.getElementById('btnR1Next');
+      if(btn) btn.style.display='inline-flex';
+    }, 1000);
+  });
+}
+
+// ============================================================
+// IMPROVEMENT 1 — 5S + CT
+// ============================================================
+const FIVES_ACTIONS = [
+  {id:'a1', text:'Убрать все лишние предметы с рабочих мест', points:20, correct:true},
+  {id:'a2', text:'Разработать плакаты с мотивационными цитатами', points:-5, correct:false},
+  {id:'a3', text:'Обозначить места хранения всех инструментов и деталей', points:20, correct:true},
+  {id:'a4', text:'Провести уборку всех рабочих поверхностей', points:15, correct:true},
+  {id:'a5', text:'Разработать стандарты хранения инструментов (визуальный контроль)', points:20, correct:true},
+  {id:'a6', text:'Заменить устаревшие инструкции на актуальные', points:15, correct:true},
+  {id:'a7', text:'Провести корпоративный тимбилдинг за пределами цеха', points:-5, correct:false},
+  {id:'a8', text:'Установить расписание ежедневных аудитов 5S', points:15, correct:true},
+];
+
+function renderImp1(el){
+  el.innerHTML = `<div class="anim-slide">
+    <div class="tag-pill tag-yellow" style="margin-bottom:12px">Улучшение после Тура 1</div>
+    <div class="phase-title">📊 Разбор и улучшение: 5S + Такт-время</div>
+
+    <div class="metrics-row">
+      <div class="metric-card bad"><div class="mc-val">6/10</div><div class="mc-label">Выпущено</div></div>
+      <div class="metric-card bad"><div class="mc-val">9</div><div class="mc-label">WIP</div></div>
+      <div class="metric-card bad"><div class="mc-val">2</div><div class="mc-label">Травмы 🚑</div></div>
+      <div class="metric-card bad"><div class="mc-val">60%</div><div class="mc-label">Эффективность</div></div>
+    </div>
+
+    <div class="insight-box red">❌ <strong>Что пошло не так:</strong> 220 секунд на каждую единицу БПЛА уходит на поиск инструментов и материалов. Плохой 5S → травмы → остановки производства → недовыпуск.</div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="section-h">🧹 Шаг 1: Выбери 5S-мероприятия <span style="font-size:13px;color:var(--muted)">(выбери все правильные действия)</span></div>
+      <div id="fiveSActions" style="display:flex;flex-direction:column;gap:8px">
+        ${FIVES_ACTIONS.map(a=>`
+          <label style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:var(--bg);border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:var(--t);font-size:14px" id="label-${a.id}">
+            <input type="checkbox" id="${a.id}" onchange="toggleFiveS('${a.id}',${a.correct})" style="margin-top:2px;width:18px;height:18px;accent-color:var(--g)">
+            <span>${a.text}</span>
+          </label>`).join('')}
+      </div>
+      <br>
+      <button class="btn btn-g" onclick="checkFiveS()">Применить 5S →</button>
+      <div id="fiveSResult" style="margin-top:16px"></div>
+    </div>
+
+    <div class="card" id="ctSection" style="display:none;margin-bottom:20px">
+      <div class="section-h">⏱ Шаг 2: Рассчитай Такт-время для Тура 2</div>
+      <div class="insight-box blue">
+        <strong>Формула:</strong> Такт-время = Доступное время / Спрос<br>
+        <strong>Тур 2:</strong> Смена = 3600 сек · Новый спрос = <strong>16 БПЛА/смену</strong>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:16px 0">
+        <span style="font-size:16px;font-weight:700">ТТ = 3600 ÷ 16 =</span>
+        <input type="number" id="ctInput" placeholder="?" style="width:100px;padding:10px;font-size:18px;font-weight:800;border:2px solid var(--border);border-radius:8px;font-family:inherit;text-align:center" oninput="checkCT()">
+        <span style="font-size:16px;font-weight:700">с/ед.</span>
+        <span id="ctCheck" style="font-size:20px"></span>
+      </div>
+      <div id="ctResult" style="font-size:14px;color:var(--muted)">Введи ответ (округли до целых секунд)</div>
+      <div id="ladmPreview" style="margin-top:20px;display:none">
+        <div class="section-h">📊 LADM — Сравнение операций с Такт-временем</div>
+        ${renderLADMPreview(225)}
+        <div class="insight-box yellow" style="margin-top:12px">⚠️ <strong>Замечено:</strong> Все операции ≤ 90с, что меньше такта (225с). Теоретически линия справится. Но внимание: в Туре 2 спрос выше — посмотрим, справимся ли мы без балансировки.</div>
+        <br>
+        <button class="btn btn-g" onclick="goPhase('r2')">Запустить Тур 2 →</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderLADMPreview(takt){
+  const maxT = Math.max(...OPS.map(o=>o.time)) + 20;
+  return `<div style="overflow-x:auto"><table class="ladm">
+    <tr><th>Операция</th><th>Время ВА (с)</th><th>Потери R1 (с)</th><th style="min-width:180px">График vs Такт (${takt}с)</th></tr>
+    ${OPS.map(op=>{
+      const vaW = Math.min(op.time/takt*100, 100);
+      const wasteW = Math.min(op.waste/takt*100, 100-vaW);
+      const taktPos = Math.min(100, 100);
+      const over = op.time > takt;
+      return `<tr class="${op.time===90?'bottleneck':''}">
+        <td><span style="font-size:16px">${op.icon}</span> ${op.name}</td>
+        <td><strong>${op.time}с</strong></td>
+        <td style="color:#ef9a9a">-${op.waste}с</td>
+        <td>
+          <div class="time-bar" style="width:100%;position:relative">
+            <div class="time-bar-va" style="width:${vaW}%"></div>
+            <div class="time-bar-takt" style="left:100%"></div>
+          </div>
+          ${over?`<span style="font-size:11px;color:var(--red)">⚠️ превышает такт!</span>`:''}
+        </td>
+      </tr>`;
+    }).join('')}
+  </table></div>`;
+}
+
+function toggleFiveS(id, correct){
+  if(correct) S.fiveSSelected.add(id);
+  else S.fiveSSelected.delete(id);
+}
+
+function checkFiveS(){
+  const checkboxes = FIVES_ACTIONS.map(a=>({...a, checked:document.getElementById(a.id)?.checked}));
+  let score = 0;
+  let feedback = [];
+  checkboxes.forEach(a=>{
+    if(a.checked && a.correct){ score+=a.points; document.getElementById(`label-${a.id}`).style.borderColor='var(--g)'; document.getElementById(`label-${a.id}`).style.background='var(--gl)'; }
+    else if(a.checked && !a.correct){ score+=a.points; document.getElementById(`label-${a.id}`).style.borderColor='var(--red)'; document.getElementById(`label-${a.id}`).style.background='var(--rdl)'; feedback.push(a.text); }
+    else if(!a.checked && a.correct){ document.getElementById(`label-${a.id}`).style.borderColor='var(--yellow)'; }
+  });
+  score = Math.max(0, score);
+  S.scores.imp1 = score;
+  document.getElementById('fiveSResult').innerHTML = score>=70
+    ? `<div class="insight-box">✅ <strong>Отлично! ${score}/100 баллов.</strong> 5S внедрён. Время потерь устранено. Травмы исключены.</div>`
+    : `<div class="insight-box yellow">⚠️ ${score} баллов. Некоторые правильные мероприятия пропущены. Попробуй ещё раз.</div>`;
+
+  if(score >= 50){
+    document.getElementById('ctSection').style.display='block';
+    document.getElementById('ctSection').scrollIntoView({behavior:'smooth'});
+  }
+}
+
+function checkCT(){
+  const val = parseInt(document.getElementById('ctInput').value);
+  const check = document.getElementById('ctCheck');
+  const result = document.getElementById('ctResult');
+  if(val >= 224 && val <= 226){
+    check.textContent = '✅';
+    result.innerHTML = `<span style="color:var(--g);font-weight:700">Верно! ТТ = 225 с/ед.</span> Это значит: каждые 225 секунд должен выходить один БПЛА.`;
+    document.getElementById('ladmPreview').style.display='block';
+    S.scores.imp1 = Math.max(S.scores.imp1, 80);
+  } else if(val){
+    check.textContent = '❌';
+    result.innerHTML = `<span style="color:var(--red)">Не совсем. Подсказка: 3600 ÷ 16 = ?</span>`;
+  }
+}
+
+// ============================================================
+// ROUND 2
+// ============================================================
+function renderR2(el){
+  el.innerHTML = `<div class="anim-slide">
+    <div class="tag-pill tag-yellow" style="margin-bottom:12px">Тур 2 из 3</div>
+    <div class="phase-title">🟡 Поток улучшается — 5S внедрён</div>
+    <div class="phase-sub">Спрос: <strong>16 БПЛА/смена</strong> · Такт: <strong>225 с/ед.</strong> · Рабочих: 8 · 5S выполнен</div>
+
+    <div class="insight-box blue">📌 <strong>Задача тура:</strong> 5S наведён — потери устранены. Но линия всё ещё не сбалансирована, а система PUSH. Удастся ли выполнить план на 16 единиц?</div>
+
+    <div id="factoryArea">${renderFactory({fiveS:true, pull:false, workers:8, highlightBottleneck:true, round:2})}</div>
+
+    <div class="sim-controls">
+      <div><div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px">Прошло (смена 60 мин)</div>
+      <div class="sim-timer" id="simClock">0 мин</div></div>
+      <div class="sim-demand-bar">
+        <div class="db-label"><span>Выпуск БПЛА</span><span id="simDoneLabel">0 / 16</span></div>
+        <div class="progress-bar"><div class="progress-fill yellow" id="simProgress" style="width:0%"></div></div>
+      </div>
+      <div class="metrics-row" style="margin:0;grid-template-columns:repeat(3,auto)">
+        <div class="metric-card warn"><div class="mc-val" id="m-wip">0</div><div class="mc-label">WIP</div></div>
+        <div class="metric-card good"><div class="mc-val" id="m-inj">0</div><div class="mc-label">Травмы 🚑</div></div>
+        <div class="metric-card neutral"><div class="mc-val" id="m-done">0</div><div class="mc-label">Выпущено</div></div>
+      </div>
+    </div>
+
+    <div id="eventLog" class="event-log" style="margin-bottom:20px"><div class="ev-line ev-info">⏳ Нажмите «Запустить»...</div></div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-g" id="btnRun2" onclick="startR2Sim()">▶ Запустить смену</button>
+      <button class="btn btn-outline" id="btnR2Next" style="display:none" onclick="goPhase('imp2')">Балансировка линии →</button>
+    </div>
+  </div>`;
+}
+
+function startR2Sim(){
+  document.getElementById('btnRun2').disabled = true;
+  const interval = setInterval(()=>{
+    if(document.getElementById('m-wip')) document.getElementById('m-wip').textContent = Math.max(...S.wip);
+    if(document.getElementById('m-inj')) document.getElementById('m-inj').textContent = S.injured;
+    if(document.getElementById('m-done')) document.getElementById('m-done').textContent = S.done;
+    if(document.getElementById('simDoneLabel')) document.getElementById('simDoneLabel').textContent = `${S.done} / 16`;
+    if(!S.simRunning) clearInterval(interval);
+  },200);
+  runSim(2, {fiveS:true, pull:false, workers:8, highlightBottleneck:true, round:2}, ()=>{
+    S.scores.r2 = Math.round(S.done/ROUNDS[2].demand*100);
+    showToast('Тур 2 завершён! 11/16 ед. Нужна балансировка.','warn');
+    setTimeout(()=>{ const btn=document.getElementById('btnR2Next'); if(btn) btn.style.display='inline-flex'; },1000);
+  });
+}
+
+// ============================================================
+// IMPROVEMENT 2 — LADM + Entry Point
+// ============================================================
+function renderImp2(el){
+  // Reset worker ops
+  S.workerOps = {1:[],2:[],3:[],4:[]};
+  S.selectedOp = null;
+  S.entryPoint = 7; // default correct answer
+
+  el.innerHTML = `<div class="anim-slide">
+    <div class="tag-pill tag-yellow" style="margin-bottom:12px">Улучшение после Тура 2</div>
+    <div class="phase-title">⚖️ Балансировка линии (LADM) + Точка заказа</div>
+
+    <div class="metrics-row">
+      <div class="metric-card warn"><div class="mc-val">11/16</div><div class="mc-label">Выпущено</div></div>
+      <div class="metric-card warn"><div class="mc-val">7</div><div class="mc-label">WIP</div></div>
+      <div class="metric-card good"><div class="mc-val">0</div><div class="mc-label">Травмы</div></div>
+      <div class="metric-card warn"><div class="mc-val">69%</div><div class="mc-label">Эффективность</div></div>
+    </div>
+
+    <div class="insight-box yellow">⚠️ <strong>Проблема:</strong> Несмотря на 5S, WIP накапливается перед «Крыльями» (Op2). В Туре 3 спрос вырастет до <strong>22 ед/смену</strong> (Такт = 164с). Нужно сократить рабочих с 8 до 4 и перераспределить операции.</div>
+
+    <!-- LADM interactive -->
+    <div class="card" style="margin-bottom:20px">
+      <div class="section-h">📊 Шаг 1: Line Activity Design Matrix (LADM)</div>
+      <div class="insight-box blue" style="margin-bottom:16px">
+        Тур 3: Такт-время = 3600 ÷ 22 = <strong>164 с</strong> · Минимум рабочих = 515 ÷ 164 ≈ <strong>4</strong><br>
+        Распредели 8 операций по 4 рабочим так, чтобы каждый ≤ 164с.
+      </div>
+      ${renderLADMFull()}
+      <div class="worker-bins" id="workerBins">${renderWorkerBins()}</div>
+      <div id="balanceResult"></div>
+    </div>
+
+    <!-- Entry point -->
+    <div class="card" id="epSection" style="margin-bottom:20px;display:none">
+      <div class="section-h">📍 Шаг 2: Выбери точку вхождения заказа (CODP)</div>
+      <div class="insight-box blue" style="margin-bottom:12px">
+        В Туре 3 появятся 3 варианта БПЛА (цвет + дальность). Где должен входить заказ клиента в производственный процесс?<br>
+        <strong>Операция 7 (Окраска)</strong> — момент дифференциации. До неё все БПЛА одинаковые.
+      </div>
+      <div class="ep-timeline" id="epTimeline">${renderEPTimeline()}</div>
+      <div id="epResult" style="margin-top:12px"></div>
+    </div>
+
+    <button class="btn btn-g" id="btnImp2Go" style="display:none" onclick="goPhase('r3')">▶ Запустить Тур 3 →</button>
+  </div>`;
+}
+
+function renderLADMFull(){
+  const takt = 164;
+  const maxT = Math.max(...OPS.map(o=>o.time));
+  return `<div style="overflow-x:auto"><table class="ladm">
+    <tr><th>Операция</th><th>ВА (с)</th><th style="min-width:200px">vs Такт 164с</th><th>Назначить рабочему</th></tr>
+    ${OPS.map(op=>{
+      const pct = Math.min(op.time/takt*100, 110);
+      const over = op.time > takt;
+      // Find which worker has this op
+      const assigned = Object.entries(S.workerOps).find(([,ops])=>ops.includes(op.id));
+      const assignedWorker = assigned ? assigned[0] : null;
+      return `<tr id="ladm-row-${op.id}">
+        <td><span style="font-size:16px">${op.icon}</span> ${op.name}${op.variant?` <span class="tag-pill tag-yellow" style="font-size:10px;padding:2px 8px">Дифференциация</span>`:''}</td>
+        <td><strong>${op.time}с</strong></td>
+        <td>
+          <div class="time-bar" style="width:100%">
+            <div class="time-bar-va" style="width:${Math.min(pct,100)}%;background:${over?'var(--red)':'var(--g)'}"></div>
+            <div class="time-bar-takt" style="left:100%"></div>
+          </div>
+        </td>
+        <td>
+          <div class="worker-assign">
+            ${[1,2,3,4].map(w=>`<span class="wk-chip ${assignedWorker==w?'sel':''}" onclick="assignOp(${op.id},${w})" id="wkc-${op.id}-${w}">👷${w}</span>`).join('')}
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}
+  </table></div>`;
+}
+
+function renderWorkerBins(){
+  const takt = 164;
+  return [1,2,3,4].map(w=>{
+    const ops = S.workerOps[w] || [];
+    const total = ops.reduce((a,id)=>a+(OPS.find(o=>o.id===id)?.time||0),0);
+    const pct = Math.min(total/takt*100,110);
+    const balanced = total <= takt && total >= takt*0.5;
+    const over = total > takt;
+    return `<div class="worker-bin ${over?'over':balanced?'balanced':''}" id="wbin-${w}">
+      <div class="wb-header">👷 Рабочий ${w}
+        <span style="font-size:13px;font-weight:700;color:${over?'var(--red)':balanced?'var(--g)':'var(--muted)'}">${total}с / ${takt}с</span>
+      </div>
+      <div class="wb-ops">
+        ${ops.map(id=>{
+          const op=OPS.find(o=>o.id===id);
+          return op?`<span class="wb-op" title="Нажми чтобы убрать" onclick="unassignOp(${id},${w})">${op.icon} ${op.short} <small>${op.time}с</small></span>`:''
+        }).join('')}
+        ${ops.length===0?`<span style="color:#aaa;font-size:13px">Назначь операции из таблицы выше</span>`:''}
+      </div>
+      <div class="wb-time-bar">
+        <div class="wb-time-fill" style="width:${Math.min(pct,100)}%;background:${over?'var(--red)':balanced?'var(--g)':'var(--yellow)'}"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function assignOp(opId, worker){
+  // Remove from any current worker
+  [1,2,3,4].forEach(w=>{ S.workerOps[w] = (S.workerOps[w]||[]).filter(id=>id!==opId); });
+  // Assign to new worker
+  if(!S.workerOps[worker]) S.workerOps[worker]=[];
+  S.workerOps[worker].push(opId);
+  // Re-render LADM chips
+  OPS.forEach(op=>{
+    [1,2,3,4].forEach(w=>{
+      const chip = document.getElementById(`wkc-${op.id}-${w}`);
+      if(chip) chip.className = `wk-chip ${(S.workerOps[w]||[]).includes(op.id)?'sel':''}`;
+    });
+  });
+  // Re-render bins
+  document.getElementById('workerBins').innerHTML = renderWorkerBins();
+  checkBalance();
+}
+
+function unassignOp(opId, worker){
+  S.workerOps[worker] = (S.workerOps[worker]||[]).filter(id=>id!==opId);
+  [1,2,3,4].forEach(w=>{
+    const chip = document.getElementById(`wkc-${opId}-${w}`);
+    if(chip) chip.className = `wk-chip`;
+  });
+  document.getElementById('workerBins').innerHTML = renderWorkerBins();
+  checkBalance();
+}
+
+function checkBalance(){
+  const takt = 164;
+  const allAssigned = OPS.every(op=>[1,2,3,4].some(w=>(S.workerOps[w]||[]).includes(op.id)));
+  if(!allAssigned){ document.getElementById('balanceResult').innerHTML=''; return; }
+
+  const workerTotals = [1,2,3,4].map(w=>({w, total:(S.workerOps[w]||[]).reduce((a,id)=>a+(OPS.find(o=>o.id===id)?.time||0),0)}));
+  const overloaded = workerTotals.filter(wt=>wt.total>takt);
+  const maxTotal = Math.max(...workerTotals.map(w=>w.total));
+  const efficiency = Math.round(TOTAL_VA / (4*maxTotal)*100);
+
+  if(overloaded.length > 0){
+    document.getElementById('balanceResult').innerHTML = `<div class="insight-box red">❌ Рабочий ${overloaded.map(w=>`#${w.w} (${w.total}с)`).join(', ')} превышает такт (${takt}с). Перераспредели операции.</div>`;
+    return;
+  }
+
+  S.scores.imp2 = efficiency;
+  document.getElementById('balanceResult').innerHTML = `
+    <div class="insight-box">✅ <strong>Линия сбалансирована!</strong> КПД балансировки: ${efficiency}% (ВА время = ${TOTAL_VA}с / 4 рабочих × макс.${maxTotal}с)
+      <br>Рабочий с максимальной нагрузкой: ${maxTotal}с (задаёт ритм линии)
+    </div>`;
+  document.getElementById('epSection').style.display = 'block';
+  document.getElementById('epSection').scrollIntoView({behavior:'smooth'});
+}
+
+function renderEPTimeline(){
+  let html = '';
+  OPS.forEach((op,i)=>{
+    const isSelected = S.entryPoint === op.id;
+    const isBefore = S.entryPoint && op.id < S.entryPoint;
+    html += `<div class="ep-op ${isBefore?'forecast':op.variant?'variant':'made-to-order'}" onclick="setEntryOp(${op.id})">${op.icon}<br>${op.short}</div>`;
+    if(i < OPS.length-1){
+      html += `<div class="ep-cut ${isSelected?'selected':''}" onclick="setEntry(${op.id})" id="cut-${op.id}">
+        <div class="cut-line"></div>
+        <div class="cut-label">${isSelected?'◄ CODP':'|'}</div>
+      </div>`;
+    }
+  });
+  return html;
+}
+
+function setEntry(afterOpId){
+  S.entryPoint = afterOpId+1;
+  document.getElementById('epTimeline').innerHTML = renderEPTimeline();
+  evaluateEntryPoint();
+}
+function setEntryOp(opId){
+  S.entryPoint = opId;
+  document.getElementById('epTimeline').innerHTML = renderEPTimeline();
+  evaluateEntryPoint();
+}
+
+function evaluateEntryPoint(){
+  const ep = S.entryPoint;
+  const result = document.getElementById('epResult');
+  if(ep === 7){
+    result.innerHTML = `<div class="insight-box">✅ <strong>Отлично! CODP = перед Окраской (Оп 7)</strong><br>
+      <strong>Логика:</strong> Операции 1-6 одинаковы для всех вариантов БПЛА. Дифференциация происходит только на этапе окраски. Значит:<br>
+      • Собираем <strong>общие полуфабрикаты</strong> под прогноз (Оп 1-6, ~425с, 1 SKU)<br>
+      • При поступлении заказа — <strong>быстро завершаем</strong> под конкретный вариант (Оп 7-8, ~90с)<br>
+      • Запасы в 3× меньше, чем если бы хранили готовые варианты</div>`;
+    S.scores.imp2 = Math.max(S.scores.imp2, 90);
+    setTimeout(()=>{ const btn=document.getElementById('btnImp2Go'); if(btn) btn.style.display='inline-flex'; },500);
+  } else if(ep >= 5){
+    result.innerHTML = `<div class="insight-box yellow">⚠️ Неплохо, но можно лучше. Операции ${OPS.find(o=>o.id===ep)?.name} и далее уже включают дифференциацию? Операция 7 (Окраска) — <em>первая</em> точка различия вариантов.</div>`;
+  } else if(ep && ep < 5){
+    result.innerHTML = `<div class="insight-box red">❌ CODP слишком ранний. Придётся хранить много незавершённого производства по каждому варианту отдельно. Подумай: какая операция первой создаёт различие между Герань-1, 2 и 3?</div>`;
+  }
+}
+
+// ============================================================
+// ROUND 3
+// ============================================================
+function renderR3(el){
+  el.innerHTML = `<div class="anim-slide">
+    <div class="tag-pill tag-green" style="margin-bottom:12px">Тур 3 из 3</div>
+    <div class="phase-title">🟢 Вытягивающий поток + Поздняя дифференциация</div>
+    <div class="phase-sub">Спрос: <strong>22 БПЛА/смену</strong> · 3 варианта · Такт: <strong>164 с/ед.</strong> · Pull-система</div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+      ${VARIANTS.map(v=>`<span class="variant-chip var-${v.id.slice(-1)}">${v.emoji} ${v.name} · ${v.color} · ${v.range}</span>`).join('')}
+    </div>
+
+    <div class="insight-box">🎯 <strong>Условия Тура 3:</strong> 4 сбалансированных рабочих. CODP = перед Оп 7. Pull-сигналы (Kanban). Дифференциация только по заказу. Сможем ли выполнить план 22 ед.?</div>
+
+    <div id="factoryArea">${renderFactory({fiveS:true, pull:true, workers:4, entryPoint:7, round:3, showKanban:true})}</div>
+
+    <div class="sim-controls">
+      <div><div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px">Прошло (смена 60 мин)</div>
+      <div class="sim-timer" id="simClock">0 мин</div></div>
+      <div class="sim-demand-bar">
+        <div class="db-label"><span>Выпуск БПЛА (3 варианта)</span><span id="simDoneLabel">0 / 22</span></div>
+        <div class="progress-bar"><div class="progress-fill green" id="simProgress" style="width:0%"></div></div>
+      </div>
+      <div class="metrics-row" style="margin:0;grid-template-columns:repeat(3,auto)">
+        <div class="metric-card good"><div class="mc-val" id="m-wip">0</div><div class="mc-label">WIP</div></div>
+        <div class="metric-card good"><div class="mc-val" id="m-inj">0</div><div class="mc-label">Травмы</div></div>
+        <div class="metric-card good"><div class="mc-val" id="m-done">0</div><div class="mc-label">Выпущено</div></div>
+      </div>
+    </div>
+
+    <div id="eventLog" class="event-log" style="margin-bottom:20px"><div class="ev-line ev-info">⏳ Нажмите «Запустить»...</div></div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-g" id="btnRun3" onclick="startR3Sim()">▶ Запустить смену</button>
+      <button class="btn btn-outline" id="btnR3Next" style="display:none" onclick="goPhase('final')">📊 Итоги и сертификат →</button>
+    </div>
+  </div>`;
+}
+
+function startR3Sim(){
+  document.getElementById('btnRun3').disabled = true;
+  const interval = setInterval(()=>{
+    if(document.getElementById('m-wip')) document.getElementById('m-wip').textContent = Math.max(...S.wip);
+    if(document.getElementById('m-inj')) document.getElementById('m-inj').textContent = S.injured;
+    if(document.getElementById('m-done')) document.getElementById('m-done').textContent = S.done;
+    if(document.getElementById('simDoneLabel')) document.getElementById('simDoneLabel').textContent = `${S.done} / 22`;
+    if(!S.simRunning) clearInterval(interval);
+  },200);
+  runSim(3, {fiveS:true, pull:true, workers:4, entryPoint:7, round:3, showKanban:true}, ()=>{
+    S.scores.r3 = Math.round(S.done/ROUNDS[3].demand*100);
+    showToast('🎉 Тур 3 завершён! 20/22 ед., 3 варианта, WIP=2!','ok');
+    spawnConfetti();
+    setTimeout(()=>{ const btn=document.getElementById('btnR3Next'); if(btn) btn.style.display='inline-flex'; },1500);
+  });
+}
+
+// ============================================================
+// FINAL
+// ============================================================
+function renderFinal(el){
+  const avg = Math.round((S.scores.r1 + S.scores.r2 + S.scores.r3)/3);
+  spawnConfetti();
+  el.innerHTML = `<div class="anim-slide">
+    <div class="phase-title" style="text-align:center">🏆 Симуляция завершена!</div>
+
+    <div class="cert-wrap">
+      <div class="cert-icon">🚁</div>
+      <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--g);margin-bottom:6px">LeanPro — Lean Flow Simulator</div>
+      <div style="font-size:24px;font-weight:800;margin-bottom:8px">Сертификат Lean Flow специалиста</div>
+      <div style="color:var(--muted);font-size:14px;margin-bottom:20px">Успешно пройдены все 3 тура симулятора сборки БПЛА «Герань»</div>
+      <div style="font-size:56px;font-weight:800;color:var(--g)">${avg}<span style="font-size:24px">/100</span></div>
+      <div class="cert-kpi-grid">
+        <div class="cert-kpi"><strong>${ROUNDS[1].produced}/${ROUNDS[1].demand}</strong><span>Тур 1 (Push+5S)</span></div>
+        <div class="cert-kpi"><strong>${ROUNDS[2].produced}/${ROUNDS[2].demand}</strong><span>Тур 2 (5S+баланс)</span></div>
+        <div class="cert-kpi"><strong>${ROUNDS[3].produced}/${ROUNDS[3].demand}</strong><span>Тур 3 (Pull+CODP)</span></div>
+      </div>
+    </div>
+
+    <!-- Comparison Table -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="section-h">📊 Сравнение туров</div>
+      <div style="overflow-x:auto"><table class="compare-table">
+        <tr><th>Показатель</th><th>Тур 1 🔴 Push</th><th>Тур 2 🟡 5S</th><th>Тур 3 🟢 Pull</th></tr>
+        <tr><td>Спрос (ед./смену)</td><td>10</td><td>16</td><td>22</td></tr>
+        <tr><td>Выпущено (ед.)</td><td class="r1">6</td><td class="r2">11</td><td class="r3">20</td></tr>
+        <tr><td>OTD (выполнение плана)</td><td class="r1">60%</td><td class="r2">69%</td><td class="r3">91%</td></tr>
+        <tr><td>WIP (незавершённое пр-во)</td><td class="r1">9 ед.</td><td class="r2">7 ед.</td><td class="r3">2 ед. <span class="trend-up">▼77%</span></td></tr>
+        <tr><td>Травмы</td><td class="r1">2 🚑</td><td class="r2">0 ✅</td><td class="r3">0 ✅</td></tr>
+        <tr><td>Рабочих</td><td>8</td><td>8</td><td class="r3">4 <span class="trend-up">↓50%</span></td></tr>
+        <tr><td>Такт-время</td><td>360с</td><td>225с</td><td>164с</td></tr>
+        <tr><td>Потери 5S (сек/ед.)</td><td class="r1">220с</td><td class="r2">0с ✅</td><td class="r3">0с ✅</td></tr>
+        <tr><td>Варианты продукта</td><td>1</td><td>1</td><td class="r3">3 (поздняя дифф.)</td></tr>
+      </table></div>
+    </div>
+
+    <!-- Key Learnings -->
+    <div class="card card-green" style="margin-bottom:24px">
+      <div class="section-h">💡 Ключевые выводы</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="insight-box"><strong>1. 5S — фундамент потока.</strong> Устранение потерь на поиск инструментов (+220с/ед.) устранило травмы и освободило время. Без 5S невозможен стабильный поток.</div>
+        <div class="insight-box"><strong>2. Такт-время задаёт ритм.</strong> ТТ = Доступное время ÷ Спрос. Все операции должны укладываться в такт. Bottleneck = Op2 (90с) определял пропускную способность линии.</div>
+        <div class="insight-box"><strong>3. LADM: 4 рабочих эффективнее 8.</strong> Сокращение числа рабочих с 8 до 4 с одновременным перераспределением операций повысило КПД балансировки и устранило простои.</div>
+        <div class="insight-box"><strong>4. CODP = перед Окраской (Оп 7).</strong> До Оп 7 все варианты БПЛА идентичны. Прогнозируй на уровне общего полуфабриката — кастомизируй под реальный заказ. WIP сократился с 9 до 2 ед.</div>
+        <div class="insight-box"><strong>5. Pull vs Push.</strong> Kanban-сигналы запустили производство только тогда, когда появилась ёмкость. Никакого перепроизводства, никаких «толкающих» очередей.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="index.html" class="btn btn-g">← На главную LeanPro</a>
+      <button class="btn btn-outline" onclick="resetGame()">🔄 Пройти ещё раз</button>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function showToast(msg, type='ok'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `lf-toast ${type} show`;
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+function spawnConfetti(){
+  const colors=['#1a6b3c','#f5a623','#2196f3','#e91e63','#4caf50','#ff9800'];
+  for(let i=0;i<60;i++){
+    const el=document.createElement('div');
+    el.style.cssText=`position:fixed;top:-10px;left:${Math.random()*100}vw;
+      width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:${Math.random()>.5?'50%':'2px'};
+      animation:confettiFall ${1.5+Math.random()*2}s ${Math.random()*.8}s ease-in forwards;
+      z-index:9999;pointer-events:none`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),4000);
+  }
+}
+
+function resetGame(){
+  Object.assign(S,{phase:'theory',round:0,simRunning:false,simT:0,wip:[0,0,0,0,0,0,0,0],done:0,injured:0,log:[],kanbanActive:[],fiveSSelected:new Set(),ctValue:'',workerOps:{1:[],2:[],3:[],4:[]},selectedOp:null,entryPoint:null,scores:{r1:0,r2:0,r3:0,imp1:0,imp2:0}});
+  clearInterval(S.simTimer);
+  render();
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+render();
+</script>
+</body>
+</html>

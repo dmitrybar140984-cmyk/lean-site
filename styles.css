@@ -399,6 +399,14 @@ body {
   border-radius: 0 12px 0 12px;
 }
 .course-card__badge--gold { background: var(--primary); }
+.course-card__badge--new { background: #7c3aed; }
+
+.course-card--ladm {
+  border-color: #7c3aed;
+  border-width: 2px;
+  background: linear-gradient(135deg, #fff 0%, #f5f0ff 100%);
+}
+.course-card--ladm .course-card__cat { color: #7c3aed; }
 
 .course-card__icon { font-size: 40px; }
 .course-card__cat { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); }
@@ -456,6 +464,27 @@ body {
 @keyframes gamePulse {
   0%,100% { box-shadow: 0 0 0 0 rgba(26,107,60,0.4); }
   50% { box-shadow: 0 0 0 8px rgba(26,107,60,0); }
+}
+
+/* Nav link highlight for new section */
+.nav__link--new {
+  background: linear-gradient(135deg, #1a6b3c, #2e9e5e);
+  color: #fff !important;
+  border-radius: 8px;
+  padding: 6px 14px !important;
+  animation: gamePulse 2.5s infinite;
+}
+.nav__link--new:hover {
+  background: linear-gradient(135deg, #134d2c, #1a6b3c) !important;
+  color: #fff !important;
+  animation: none;
+}
+
+/* Lean Flow course card accent */
+.course-card--lean-flow {
+  background: linear-gradient(135deg, #fff 0%, #f0f7ff 100%);
+  border-color: #1976d2;
+  border-width: 2px;
 }
 
 /* ====== BENEFITS ====== */
