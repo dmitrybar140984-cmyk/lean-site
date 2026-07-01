@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Введение в Lean — LeanPro</title>
+<link rel="preconnect" href="https://fonts.bunny.net"/>
+<link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f0f2f5;color:#1a2533;min-height:100vh;display:flex;flex-direction:column}
+.cp-topbar{background:#1a2533;color:#fff;padding:0 20px;height:52px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.cp-topbar__back{color:#a0aec0;text-decoration:none;font-size:13px;display:flex;align-items:center;gap:6px;transition:color .2s}
+.cp-topbar__back:hover{color:#fff}
+.cp-topbar__title{font-size:14px;font-weight:600;flex:1}
+.cp-topbar__prog{display:flex;align-items:center;gap:10px;font-size:13px;color:#a0aec0}
+.cp-topbar__bar{width:120px;height:6px;background:#2d3748;border-radius:3px;overflow:hidden}
+.cp-topbar__fill{height:100%;background:#48bb78;border-radius:3px;transition:width .4s}
+.sidebar-toggle{display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 8px}
+@media(max-width:768px){.sidebar-toggle{display:block}}
+.cp-layout{display:grid;grid-template-columns:280px 1fr;flex:1;min-height:0}
+@media(max-width:768px){.cp-layout{grid-template-columns:1fr}}
+.cp-sidebar{background:#1e2d3d;overflow-y:auto;max-height:calc(100vh - 52px);position:sticky;top:52px}
+@media(max-width:768px){.cp-sidebar{position:fixed;left:-280px;top:52px;bottom:0;z-index:90;width:280px;transition:left .3s;max-height:none}}
+.cp-sidebar.open{left:0}
+.sidebar-course{padding:16px 20px;border-bottom:1px solid #2d3a4a}
+.sidebar-course__label{font-size:11px;color:#718096;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.sidebar-course__name{font-size:14px;font-weight:700;color:#fff}
+.sidebar-course__meta{font-size:12px;color:#718096;margin-top:4px}
+.sidebar-module{border-bottom:1px solid #1a2533}
+.sidebar-module__head{padding:12px 20px;font-size:12px;font-weight:700;color:#4a9c6f;text-transform:uppercase;letter-spacing:.4px;display:flex;justify-content:space-between;cursor:pointer;user-select:none}
+.sidebar-module__head:hover{background:#243446}
+.sidebar-module__count{font-weight:400;color:#718096}
+.sidebar-module__lessons{display:none}
+.sidebar-module.expanded .sidebar-module__lessons{display:block}
+.sidebar-lesson{display:flex;align-items:center;gap:10px;padding:9px 20px 9px 28px;font-size:13px;color:#a0aec0;cursor:pointer;transition:all .15s}
+.sidebar-lesson:hover{background:#243446;color:#e2e8f0}
+.sidebar-lesson.active{background:#1a3a2f;color:#48bb78}
+.sidebar-lesson.done .sl-check{background:#48bb78;border-color:#48bb78;color:#fff}
+.sl-check{width:18px;height:18px;border-radius:50%;border:2px solid currentColor;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px}
+.sl-info{flex:1;min-width:0}
+.sl-title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.sl-dur{font-size:11px;color:#4a5568;margin-top:1px}
+.cp-main{overflow-y:auto;max-height:calc(100vh - 52px)}
+.cp-content{max-width:860px;margin:0 auto;padding:28px 24px 60px}
+.lesson-video{background:#000;border-radius:12px;overflow:hidden;position:relative;aspect-ratio:16/9;margin-bottom:28px}
+.lesson-video__ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:linear-gradient(135deg,#0d1117,#1a2533)}
+.lesson-video__icon{font-size:60px;opacity:.5}
+.lesson-video__title{color:rgba(255,255,255,.8);font-size:17px;font-weight:600;text-align:center;padding:0 32px}
+.lesson-video__label{color:rgba(255,255,255,.4);font-size:13px}
+.lesson-video iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+.lesson-header{margin-bottom:22px}
+.lesson-header__meta{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.lbadge{padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.lbadge--mod{background:#e8f5e9;color:#1a6b3c}
+.lbadge--dur{background:#e3f2fd;color:#1565c0}
+.lesson-header__title{font-size:24px;font-weight:800;color:#1a2533;line-height:1.2}
+.lesson-header__sub{font-size:14px;color:#6b7280;margin-top:8px}
+.ts{background:#fff;border-radius:12px;padding:22px;margin-bottom:18px;border:1px solid #e5e7eb}
+.ts h3{font-size:16px;font-weight:700;color:#1a2533;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #e8f5e9}
+.ts p{font-size:15px;line-height:1.7;color:#374151;margin-bottom:10px}
+.ts p:last-child{margin-bottom:0}
+.ts ul,.ts ol{padding-left:20px;margin-bottom:10px}
+.ts li{font-size:15px;line-height:1.65;color:#374151;margin-bottom:5px}
+.ts strong{color:#1a2533}
+.ib{background:#e8f5e9;border-left:4px solid #1a6b3c;border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:14px;color:#1a3a2f;line-height:1.55}
+.wb{background:#fff8e1;border-left:4px solid #ffc107;border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:14px;color:#5d4037;line-height:1.55}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:12px 0}
+.wcard{background:#f8f9fa;border:1px solid #e5e7eb;border-radius:8px;padding:12px}
+.wcard__n{font-size:11px;font-weight:700;color:#6b7280;margin-bottom:3px}
+.wcard__name{font-size:14px;font-weight:700;color:#1a2533;margin-bottom:3px}
+.wcard__desc{font-size:12px;color:#6b7280}
+.wcard__ex{font-size:12px;color:#1a6b3c;margin-top:3px;font-style:italic}
+.plist{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.pitem{display:flex;gap:12px;align-items:flex-start;background:#f8f9fa;border-radius:8px;padding:12px}
+.pitem__n{width:26px;height:26px;background:#1a6b3c;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.pitem__b h4{font-size:14px;font-weight:700;color:#1a2533;margin-bottom:2px}
+.pitem__b p{font-size:13px;color:#6b7280;line-height:1.5}
+.s5grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0}
+@media(max-width:600px){.s5grid{grid-template-columns:repeat(2,1fr)}}
+.s5c{background:#f8f9fa;border-radius:8px;padding:10px;text-align:center;border-top:3px solid}
+.s5c__jp{font-size:10px;color:#6b7280;margin-bottom:2px}
+.s5c__ru{font-size:13px;font-weight:700;color:#1a2533}
+.s5c__d{font-size:11px;color:#6b7280;margin-top:3px}
+.mtable{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+.mtable th{background:#1a2533;color:#fff;padding:8px 12px;text-align:left}
+.mtable td{padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151}
+.mtable tr:nth-child(even) td{background:#f8f9fa}
+.tl{display:flex;flex-direction:column;margin:12px 0}
+.tli{display:flex;gap:0}
+.tl-dc{display:flex;flex-direction:column;align-items:center;width:32px;flex-shrink:0}
+.tl-dot{width:12px;height:12px;border-radius:50%;background:#1a6b3c;margin-top:4px}
+.tl-line{width:2px;background:#e5e7eb;flex:1;min-height:12px}
+.tli:last-child .tl-line{display:none}
+.tl-cnt{padding:0 0 16px 12px;flex:1}
+.tl-cnt h4{font-size:14px;font-weight:700;color:#1a2533;margin-bottom:2px}
+.tl-cnt p{font-size:13px;color:#6b7280;line-height:1.5}
+.tl-cnt span{font-size:11px;color:#1a6b3c;font-weight:600}
+.key-terms{background:#fff;border-radius:12px;padding:22px;margin-bottom:18px;border:1px solid #e5e7eb}
+.key-terms h3{font-size:16px;font-weight:700;margin-bottom:12px;color:#1a2533}
+.term-list{display:flex;flex-direction:column;gap:8px}
+.term-item{display:flex;gap:10px;align-items:flex-start}
+.term-item__b{background:#1a6b3c;color:#fff;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.term-item__d{font-size:14px;color:#374151;line-height:1.5}
+.task-box{background:linear-gradient(135deg,#e8f5e9,#f1f8e9);border:1px solid #a5d6a7;border-radius:12px;padding:20px;margin-bottom:18px}
+.task-box__label{font-size:11px;font-weight:700;color:#1a6b3c;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.task-box h3{font-size:15px;font-weight:700;color:#1a3a2f;margin-bottom:8px}
+.task-box p{font-size:14px;color:#2d5a3d;line-height:1.6}
+.quiz-sec{background:#fff;border-radius:12px;padding:22px;margin-bottom:18px;border:1px solid #e5e7eb}
+.quiz-sec h3{font-size:16px;font-weight:700;color:#1a2533;margin-bottom:4px}
+.quiz-sec__sub{font-size:13px;color:#6b7280;margin-bottom:18px}
+.qitem{margin-bottom:18px}
+.qitem__n{font-size:12px;color:#6b7280;margin-bottom:4px}
+.qitem__q{font-size:15px;font-weight:600;color:#1a2533;margin-bottom:10px}
+.qopts{display:flex;flex-direction:column;gap:7px}
+.qopt{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;border:2px solid #e5e7eb;cursor:pointer;font-size:14px;color:#374151;background:#f8f9fa;transition:all .15s;text-align:left;width:100%}
+.qopt:hover:not(.disabled){border-color:#1a6b3c;background:#e8f5e9}
+.qopt.correct{border-color:#1a6b3c!important;background:#e8f5e9!important;color:#1a3a2f;font-weight:600}
+.qopt.wrong{border-color:#e53935!important;background:#ffebee!important;color:#b71c1c}
+.qopt.disabled{cursor:default}
+.qfb{font-size:13px;margin-top:6px;padding:7px 12px;border-radius:6px}
+.qfb.ok{background:#e8f5e9;color:#1a6b3c}
+.qfb.fail{background:#ffebee;color:#c62828}
+.quiz-result{text-align:center;padding:20px;display:none}
+.quiz-result__score{font-size:40px;font-weight:800;color:#1a6b3c}
+.quiz-result__text{font-size:14px;color:#6b7280;margin-top:4px}
+.lesson-nav{display:flex;justify-content:space-between;gap:12px;margin-top:8px;padding-top:20px;border-top:1px solid #e5e7eb}
+.lnbtn{padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:8px}
+.lnbtn--prev{background:#f1f5f9;color:#475569}
+.lnbtn--prev:hover{background:#e2e8f0}
+.lnbtn--next{background:#1a6b3c;color:#fff;margin-left:auto}
+.lnbtn--next:hover{background:#1a5c34}
+.lnbtn--complete{background:#1976d2;color:#fff}
+.lnbtn--complete:hover{background:#1565c0}
+.cert-wrap{text-align:center;padding:32px 16px}
+.cert-card{background:linear-gradient(135deg,#1a2533,#1e3a2f);color:#fff;border-radius:16px;padding:40px;max-width:580px;margin:0 auto}
+.cert-title{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#48bb78;margin-bottom:8px}
+.cert-main{font-size:26px;font-weight:800;margin-bottom:6px}
+.cert-course{font-size:14px;color:rgba(255,255,255,.65);margin-bottom:20px}
+.cert-seal{font-size:48px;margin-bottom:8px}
+.cert-org{font-size:16px;font-weight:700;color:#48bb78}
+.cert-date{font-size:12px;color:rgba(255,255,255,.45);margin-top:6px}
+.cert-score{font-size:14px;color:rgba(255,255,255,.7);margin:12px 0}
+.cert-btn{margin-top:20px;padding:10px 24px;background:#48bb78;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.empty-state{text-align:center;padding:80px 20px;color:#6b7280}
+.empty-state__icon{font-size:56px;margin-bottom:12px}
+.empty-state h2{font-size:22px;font-weight:700;color:#1a2533;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="cp-topbar">
+  <a href="index.html" class="cp-topbar__back">← Все курсы</a>
+  <span class="cp-topbar__title">Введение в Lean</span>
+  <div class="cp-topbar__prog">
+    <span id="progText">0 / 16</span>
+    <div class="cp-topbar__bar"><div class="cp-topbar__fill" id="progFill" style="width:0%"></div></div>
+  </div>
+  <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+</div>
+<div class="cp-layout">
+  <aside class="cp-sidebar" id="sidebar">
+    <div class="sidebar-course">
+      <div class="sidebar-course__label">Курс</div>
+      <div class="sidebar-course__name">Введение в Lean</div>
+      <div class="sidebar-course__meta">16 уроков · 16 часов · 4 модуля</div>
+    </div>
+    <div id="sidebarTree"></div>
+  </aside>
+  <main class="cp-main">
+    <div class="cp-content" id="lessonArea">
+      <div class="empty-state">
+        <div class="empty-state__icon">📚</div>
+        <h2>Выберите урок</h2>
+        <p>Нажмите на урок в левом меню, чтобы начать</p>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+const MODULES = [
+  {
+    id:1, title:'Основы Lean', lessons:[
+      {
+        id:'1-1', title:'История TPS и рождение Lean', dur:40,
+        mod:'Основы Lean',
+        sub:'Как Toyota изобрела производственную систему, ставшую стандартом мирового производства',
+        theory:[
+          {h:'Рождение Toyota Production System',
+           p:`В 1930-х годах Сакити Тойода изобрёл ткацкий станок, который автоматически останавливался при обрыве нити. Этот принцип — <strong>автоматическая остановка при обнаружении дефекта</strong> — лёг в основу концепции Jidoka, одного из двух столпов TPS.<br><br>После Второй мировой войны Эйджи Тойода и Тайити Оно посетили заводы Ford в США. Они увидели мощное массовое производство, но поняли: Toyota не может скопировать Ford — у Японии не было ресурсов для огромных партий и запасов. Нужен был другой путь.`},
+          {h:'Тайити Оно и TPS',
+           p:`Тайити Оно разработал Toyota Production System, сфокусировавшись на двух целях: <strong>устранение потерь</strong> и <strong>уважение к людям</strong>. Он ввёл систему вытягивания (Pull), канбан-карточки и концепцию Just-in-Time — производить только то, что нужно, когда нужно, в нужном количестве.<br><br>Второй столп TPS — <strong>Jidoka</strong> (дзидока): умная автоматизация с человеческим интеллектом. Оборудование само обнаруживает проблему и останавливается, не порождая дефектов дальше по потоку.`},
+          {h:'Рождение термина «Lean»',
+           p:`В 1990 году вышла книга Джеймса Вомака, Дэниела Джонса и Дэниела Руса <em>«Машина, которая изменила мир»</em> — результат 5-летнего исследования MIT. Они сравнили заводы Toyota и западных производителей и ввели термин <strong>Lean Manufacturing</strong> («бережливое производство»).<br><br>В 1996 году Вомак и Джонс выпустили <em>«Lean Thinking»</em> — книгу с пятью универсальными принципами Lean, применимыми в любой отрасли.`},
+          {h:'Lean сегодня',
+           p:`Сегодня Lean используется не только в производстве, но и в здравоохранении, строительстве, IT (Agile/Scrum — прямые потомки Lean), банках и госсекторе. Принципы TPS стали фундаментом стандартов ISO и основой обучения в ведущих бизнес-школах мира.`}
+        ],
+        terms:[
+          {t:'TPS',d:'Toyota Production System — производственная система Toyota, основа современного Lean'},
+          {t:'JIT',d:'Just-in-Time — производить только нужное, когда нужно, в нужном количестве'},
+          {t:'Jidoka',d:'Автоматизация с человеческим интеллектом: автостоп оборудования при обнаружении дефекта'},
+          {t:'Lean',d:'«Бережливое производство» — термин введён Вомаком в 1990 году для описания принципов TPS'},
+        ],
+        task:'Найдите в своей организации один процесс, который кажется вам «тяжёлым» или медленным. Запишите 2-3 причины, почему он работает именно так. Подумайте: была ли когда-нибудь попытка его улучшить?',
+        quiz:[
+          {q:'Кто разработал Toyota Production System?',opts:['Сакити Тойода','Эйджи Тойода','Тайити Оно','Джеймс Вомак'],ans:2},
+          {q:'Что означает принцип Jidoka?',opts:['Производить без запасов','Автоматическая остановка при дефекте','Быстрая переналадка','Картирование потока'],ans:1},
+          {q:'В каком году появился термин «Lean Manufacturing»?',opts:['1950','1975','1990','2000'],ans:2},
+        ]
+      },
+      {
+        id:'1-2', title:'8 видов потерь — Muda', dur:50,
+        mod:'Основы Lean',
+        sub:'Научитесь видеть потери — первый шаг к бережливому производству',
+        theory:[
+          {h:'Три вида потерь: Muda, Mura, Muri',
+           p:`В Lean выделяют три вида потерь. <strong>Muda</strong> (無駄) — любые действия, не добавляющие ценности. <strong>Mura</strong> (斑) — неравномерность: то перегрузка, то простой. <strong>Muri</strong> (無理) — перегрузка людей и оборудования сверх разумных возможностей.<br><br>Часто работают со всеми тремя одновременно: неравномерный спрос (Mura) порождает перегрузку в пиках (Muri), что приводит к дефектам (Muda).`},
+          {h:'8 видов потерь Muda', html:`<div class="wgrid">
+            <div class="wcard"><div class="wcard__n">Потеря 1</div><div class="wcard__name">Перепроизводство</div><div class="wcard__desc">Производство больше, чем нужно клиенту прямо сейчас</div><div class="wcard__ex">Пример: штамповка 1 000 деталей при потребности 200</div></div>
+            <div class="wcard"><div class="wcard__n">Потеря 2</div><div class="wcard__name">Ожидание</div><div class="wcard__desc">Простой людей или оборудования в ожидании следующего шага</div><div class="wcard__ex">Пример: оператор ждёт пока станок закончит цикл</div></div>
+            <div class="wcard"><div class="wcard__n">Потеря 3</div><div class="wcard__name">Транспортировка</div><div class="wcard__desc">Лишние перемещения материалов и деталей</div><div class="wcard__ex">Пример: склад сырья в 200 м от линии производства</div></div>
+            <div class="wcard"><div class="wcard__n">Потеря 4</div><div class="wcard__name">Излишняя обработка</div><div class="wcard__desc">Операции, за которые клиент не готов платить</div><div class="wcard__ex">Пример: полировка поверхности, которую никто не видит</div></div>
+            <div class="wcard"><div class="wcard__n">Потеря 5</div><div class="wcard__name">Запасы</div><div class="wcard__desc">Избыточные запасы сырья, НЗП и готовой продукции</div><div class="wcard__ex">Пример: склад готовой продукции на 3 месяца вперёд</div></div>
+            <div class="wcard"><div class="wcard__n">Потеря 6</div><div class="wcard__name">Лишние движения</div><div class="wcard__desc">Нерациональные движения оператора на рабочем месте</div><div class="wcard__ex">Пример: поиск инструмента в захламлённом ящике</div></div>
+            <div class="wcard"><div class="wcard__n">Потеря 7</div><div class="wcard__name">Дефекты</div><div class="wcard__desc">Переделка, брак, инспекция, гарантийные ремонты</div><div class="wcard__ex">Пример: 3% деталей идёт на переработку из-за брака</div></div>
+            <div class="wcard"><div class="wcard__n">Потеря 8</div><div class="wcard__name">Нереализованный потенциал</div><div class="wcard__desc">Неиспользованные знания, идеи и таланты сотрудников</div><div class="wcard__ex">Пример: рабочие знают решение, но их не спрашивают</div></div>
+          </div>`},
+          {h:'Перепроизводство — потеря №1',
+           p:`Тайити Оно считал перепроизводство самой опасной потерей, потому что <strong>она порождает все остальные</strong>: лишние запасы требуют транспортировки и склада, дефекты в большой партии обнаруживаются слишком поздно, а НЗП маскирует проблемы потока.<br><br>Производить «чуть больше на всякий случай» — типичная ловушка мышления толчка (Push).`}
+        ],
+        terms:[
+          {t:'Muda',d:'Потери — действия не добавляющие ценности. 8 видов: перепроизводство, ожидание, транспортировка, излишняя обработка, запасы, движения, дефекты, потенциал'},
+          {t:'Mura',d:'Неравномерность производства — колебания объёмов, то перегрузка, то простой'},
+          {t:'Muri',d:'Перегрузка — работа людей или оборудования сверх разумных возможностей'},
+          {t:'НЗП',d:'Незавершённое производство — продукция, находящаяся между операциями'},
+        ],
+        task:'Возьмите секундомер и 30 минут понаблюдайте за одним рабочим местом или процессом. Составьте список: какие из 8 видов потерь вы обнаружили? Оцените долю времени (%), которое тратится на каждый вид потерь.',
+        quiz:[
+          {q:'Какая потеря считается самой опасной в Lean?',opts:['Дефекты','Ожидание','Перепроизводство','Транспортировка'],ans:2},
+          {q:'Что означает Mura?',opts:['Потери от брака','Неравномерность производства','Перегрузка оборудования','Лишние движения'],ans:1},
+          {q:'К какому виду потерь относится поиск инструмента на рабочем месте?',opts:['Транспортировка','Ожидание','Лишние движения','Излишняя обработка'],ans:2},
+        ]
+      },
+      {
+        id:'1-3', title:'Ценность с точки зрения клиента', dur:45,
+        mod:'Основы Lean',
+        sub:'Научитесь отличать действия, создающие ценность, от потерь',
+        theory:[
+          {h:'Кто определяет ценность?',
+           p:`В Lean ценность определяет <strong>только клиент</strong> — тот, кто платит за продукт или услугу. Ценность — это то, за что клиент готов платить, то, что трансформирует продукт в соответствии с его требованиями.<br><br>Это фундаментальный сдвиг: многие производители думают о ценности с точки зрения технологий или удобства производства. Lean требует смотреть глазами клиента.`},
+          {h:'Три категории операций',
+           p:`<strong>VA (Value Added — создающие ценность)</strong>: физически трансформируют продукт в соответствии с требованиями клиента. Клиент готов платить за эти операции. Пример: сварка, окраска, сборка.<br><br><strong>BNVA (Business Non-Value Added — необходимые, но не добавляющие ценности)</strong>: не создают ценности для клиента, но необходимы по юридическим, регуляторным или технологическим причинам. Пример: инспекция качества, ведение документации по ISO.<br><br><strong>NVA (Non-Value Added — потери)</strong>: не создают ценности и не являются необходимыми. Подлежат устранению. Пример: ожидание, лишние транспортировки, переделки.`},
+          {h:'Реальное соотношение',
+           p:`Исследования показывают: на типичном производстве <strong>только 5% времени</strong> создаёт ценность для клиента. 35% — BNVA (необходимые потери), 60% — чистые потери NVA.<br><br>В сфере услуг ситуация ещё хуже: VA-время часто составляет менее 1%. Это значит, что каждый процесс содержит огромный потенциал улучшений.`},
+          {h:'Гемба — место создания ценности',
+           p:`<strong>Гемба</strong> (яп. 現場, «реальное место») — место, где происходит работа и создаётся ценность. Lean-руководитель должен идти на гемба, чтобы видеть реальную ситуацию, а не отчёты.<br><br>Принцип <em>Genchi Genbutsu</em> («иди и смотри сам») означает: принимай решения на основе реальных наблюдений, а не данных в офисе.`}
+        ],
+        terms:[
+          {t:'VA',d:'Value Added — операции создающие ценность, за которые клиент готов платить'},
+          {t:'BNVA',d:'Business Non-Value Added — необходимые, но не добавляющие ценности операции (регуляторные, технологические требования)'},
+          {t:'NVA',d:'Non-Value Added — чистые потери, подлежащие устранению'},
+          {t:'Гемба',d:'Реальное место где создаётся ценность и выполняется работа'},
+        ],
+        task:'Выберите один процесс в вашей работе (например, оформление заявки, приёмка сырья, согласование документа). Перечислите все шаги процесса и классифицируйте каждый: VA, BNVA или NVA. Подсчитайте, сколько процентов времени создаёт реальную ценность.',
+        quiz:[
+          {q:'Кто определяет ценность в Lean?',opts:['Директор производства','Конструктор продукта','Клиент','Технолог'],ans:2},
+          {q:'Что такое BNVA?',opts:['Ценность добавляемая бизнесом','Необходимые, но не добавляющие ценности операции','Брак и переделки','Транспортные потери'],ans:1},
+          {q:'Что означает понятие «Гемба»?',opts:['Японское слово для обозначения качества','Метод картирования потока','Реальное место где выполняется работа','Система управления запасами'],ans:2},
+        ]
+      },
+      {
+        id:'1-4', title:'Пять принципов Lean-мышления', dur:55,
+        mod:'Основы Lean',
+        sub:'Фундамент Lean: от определения ценности до стремления к совершенству',
+        theory:[
+          {h:'Модель Вомака и Джонса',
+           p:`В книге «Lean Thinking» (1996) Вомак и Джонс сформулировали <strong>пять универсальных принципов Lean</strong>, применимых в любой отрасли и любом типе организации.`},
+          {html:`<div class="plist">
+            <div class="pitem"><div class="pitem__n">1</div><div class="pitem__b"><h4>Определите ценность</h4><p>Что именно хочет клиент? За что он готов платить? Начинайте с его точки зрения, а не с возможностей производства.</p></div></div>
+            <div class="pitem"><div class="pitem__n">2</div><div class="pitem__b"><h4>Определите поток ценности</h4><p>Картируйте все шаги — от сырья до клиента. Выявите VA, BNVA и NVA операции. Это делается с помощью VSM (Value Stream Map).</p></div></div>
+            <div class="pitem"><div class="pitem__n">3</div><div class="pitem__b"><h4>Обеспечьте непрерывный поток</h4><p>Уберите остановки, очереди и буферы. Продукт должен течь от операции к операции непрерывно, как вода в реке.</p></div></div>
+            <div class="pitem"><div class="pitem__n">4</div><div class="pitem__b"><h4>Внедрите вытягивание (Pull)</h4><p>Производите только то, что нужно, когда нужно. Следующий процесс «вытягивает» от предыдущего, а не тот толкает продукцию вперёд.</p></div></div>
+            <div class="pitem"><div class="pitem__n">5</div><div class="pitem__b"><h4>Стремитесь к совершенству</h4><p>Lean — это не проект с датой окончания. Это непрерывный цикл Кайдзен: каждое улучшение открывает новые возможности для следующего.</p></div></div>
+          </div>`},
+          {h:'Принципы в действии',
+           p:`Пять принципов образуют цикл: как только вы начинаете вытягивать поток, становятся видны следующие потери, и вы возвращаетесь к первому принципу — заново определяете ценность с более высокой точки зрения.<br><br><div class="ib"><strong>Ключевое понимание:</strong> Совершенство в Lean — это горизонт, к которому двигаются бесконечно. Toyota — самая Lean-компания в мире — и сегодня считает, что они прошли лишь малую часть пути.</div>`}
+        ],
+        terms:[
+          {t:'Pull',d:'Вытягивание — производство инициируется фактическим спросом, а не прогнозом или планом'},
+          {t:'Push',d:'Толкание — производство по плану/прогнозу, продукция «толкается» вниз по потоку'},
+          {t:'Кайдзен',d:'Непрерывное улучшение — философия малых постоянных изменений к лучшему'},
+          {t:'Поток ценности',d:'Все шаги (VA и NVA) для доставки продукта или услуги клиенту'},
+        ],
+        task:'Выберите один продукт или услугу вашей организации. Применительно к нему ответьте на 5 вопросов: (1) Что ценит клиент? (2) Каков весь поток от заказа до доставки? (3) Где поток прерывается? (4) Что инициирует производство — план или заказ? (5) Какое следующее улучшение вы бы сделали?',
+        quiz:[
+          {q:'Сколько принципов Lean сформулировали Вомак и Джонс?',opts:['3','4','5','8'],ans:2},
+          {q:'Что означает принцип «вытягивания» (Pull)?',opts:['Производство по месячному плану','Производство инициируется фактическим спросом клиента','Ускорение производства за счёт мотивации','Централизованное управление запасами'],ans:1},
+          {q:'Пятый принцип Lean — «Стремление к совершенству» — означает:',opts:['Достичь нулевого брака и остановиться','Внедрить ISO и получить сертификат','Непрерывный цикл улучшений без конечной точки','Автоматизировать все процессы'],ans:2},
+        ]
+      },
+    ]
+  },
+  {
+    id:2, title:'Ключевые инструменты Lean', lessons:[
+      {
+        id:'2-1', title:'Система 5S: организация рабочего места', dur:60,
+        mod:'Ключевые инструменты',
+        sub:'Фундамент всех улучшений — чистота, порядок и стандартизация рабочего места',
+        theory:[
+          {h:'Что такое 5S?',
+           p:`5S — система организации рабочего пространства, разработанная в Toyota. Название — аббревиатура пяти японских слов, каждое из которых начинается на «S». 5S — это <strong>не просто уборка</strong>, а создание среды, в которой отклонения от нормы видны немедленно.`},
+          {html:`<div class="s5grid">
+            <div class="s5c" style="border-top-color:#e53935"><div class="s5c__jp">Seiri</div><div class="s5c__ru">Сортировка</div><div class="s5c__d">Убрать всё ненужное. Красные ярлыки на лишнее.</div></div>
+            <div class="s5c" style="border-top-color:#fb8c00"><div class="s5c__jp">Seiton</div><div class="s5c__ru">Систематизация</div><div class="s5c__d">Место для всего. Всё на своём месте.</div></div>
+            <div class="s5c" style="border-top-color:#fdd835"><div class="s5c__jp">Seiso</div><div class="s5c__ru">Уборка</div><div class="s5c__d">Чистота = проверка. Убирая — проверяй.</div></div>
+            <div class="s5c" style="border-top-color:#43a047"><div class="s5c__jp">Seiketsu</div><div class="s5c__ru">Стандартизация</div><div class="s5c__d">Стандарты для поддержания первых трёх S.</div></div>
+            <div class="s5c" style="border-top-color:#1e88e5"><div class="s5c__jp">Shitsuke</div><div class="s5c__ru">Совершенствование</div><div class="s5c__d">Дисциплина. Аудиты. Культура.</div></div>
+          </div>`},
+          {h:'Красные ярлыки (Red Tag)',
+           p:`Во время первого S (Сортировка) на всё сомнительное вешают <strong>красный ярлык</strong>: что это? нужно ли здесь? как часто используется? Предметы из «зоны карантина» анализируются: нужные возвращают на место, ненужные утилизируют или перемещают.<br><br>Типичный результат Сортировки: освобождается <strong>15-30% площади</strong> рабочего места.`},
+          {h:'5S и безопасность',
+           p:`5S напрямую связан с производственной безопасностью. Захламлённые проходы — причина падений. Неопознанные жидкости — риск отравления. Неизвестно где лежащий инструмент — причина ударов. <strong>Чистое рабочее место — безопасное рабочее место.</strong><br><br><div class="ib"><strong>Принцип «видимого управления»:</strong> После 5S любое отклонение от нормы должно быть видно за 30 секунд без вопросов.</div>`}
+        ],
+        terms:[
+          {t:'5S',d:'Система организации рабочего места: Сортировка, Систематизация, Уборка, Стандартизация, Совершенствование'},
+          {t:'Красный ярлык',d:'Инструмент первого S — метка на предметах, чья необходимость под вопросом'},
+          {t:'Визуальное управление',d:'Система, при которой отклонения от нормы видны немедленно без дополнительных вопросов'},
+        ],
+        task:'Проведите 5S-аудит своего рабочего места: (1) Найдите 3 предмета, которые не нужны здесь прямо сейчас. (2) Есть ли у каждого инструмента/предмета своё обозначенное место? (3) Чистое ли рабочее место? (4) Есть ли стандарт его поддержания? (5) Проводятся ли регулярные аудиты?',
+        quiz:[
+          {q:'Что означает первое «S» в системе 5S?',opts:['Стандартизация','Систематизация','Сортировка','Совершенствование'],ans:2},
+          {q:'Для чего используют «красный ярлык» в 5S?',opts:['Маркировка опасных зон','Обозначение предметов, чья необходимость под вопросом','Индикация брака','Разграничение рабочих зон'],ans:1},
+          {q:'Какой типичный результат применения первого «S» (Сортировка)?',opts:['Снижение брака на 50%','Ускорение производства в 2 раза','Освобождение 15-30% площади рабочего места','Сокращение персонала'],ans:2},
+        ]
+      },
+      {
+        id:'2-2', title:'Стандартизированная работа', dur:55,
+        mod:'Ключевые инструменты',
+        sub:'Лучший известный способ выполнения работы — основа кайдзена',
+        theory:[
+          {h:'Зачем нужны стандарты?',
+           p:`<strong>«Без стандарта нет кайдзена»</strong> — Тайити Оно. Стандартизированная работа — это задокументированный, лучший из известных на сегодня способ выполнения операции. Без стандарта улучшение невозможно: нечего улучшать.<br><br>Важно: стандарт — не бюрократическое ограничение. Это <em>текущий лучший способ</em>, который сами рабочие могут и должны совершенствовать.`},
+          {h:'Три элемента стандартизированной работы',
+           p:`<strong>1. Такт-тайм (Takt Time)</strong> — ритм производства, задаваемый спросом клиента. Формула: доступное время / потребность клиента. Если клиент требует 100 деталей за 8 часов = 480 мин, то TT = 480 / 100 = 4,8 мин/деталь.<br><br><strong>2. Последовательность работы</strong> — точный порядок шагов, который оператор выполняет для завтрашней детали. Фиксируется в Стандартной Рабочей Карте (СРК).<br><br><strong>3. Стандартный НЗП</strong> — минимальное количество изделий в процессе для поддержания непрерывного потока.`},
+          {h:'Документы стандартизированной работы',
+           p:`<strong>Таблица времён операций</strong> — измеренные времена каждого шага. <strong>Лист стандартизированной работы (СРЛ)</strong> — схема рабочего места с маршрутом движения оператора. <strong>Таблица загрузки операторов</strong> — сравнение времени цикла каждого оператора с такт-таймом.<br><br><div class="ib"><strong>Принцип:</strong> Стандарты пишутся операторами, утверждаются мастерами. Люди, выполняющие работу, лучше всех знают как её делать правильно.</div>`}
+        ],
+        terms:[
+          {t:'Такт-тайм',d:'Takt Time = Доступное время / Потребность клиента. Ритм, с которым клиент «забирает» продукт'},
+          {t:'Время цикла',d:'Фактическое время выполнения операции одним оператором'},
+          {t:'СРК',d:'Стандартная Рабочая Карта — документ с точной последовательностью операций'},
+          {t:'НЗП',d:'Незавершённое производство на рабочем месте, необходимое для непрерывной работы'},
+        ],
+        task:'Выберите простую повторяемую операцию (сборку, упаковку, оформление документа). Засеките время 10 циклов и запишите. Вычислите среднее время цикла. Сравните с такт-таймом (если знаете спрос клиента). Есть ли перегрузка или недогрузка?',
+        quiz:[
+          {q:'Что такое Такт-тайм?',opts:['Время выполнения одной операции','Доступное время делённое на потребность клиента','Время переналадки оборудования','Скорость движения конвейера'],ans:1},
+          {q:'Кто должен составлять стандарты работы по принципам Lean?',opts:['Внешние консультанты','Отдел технологии','Сами операторы при поддержке мастеров','Директор производства'],ans:2},
+          {q:'Что НЕ является элементом стандартизированной работы?',opts:['Такт-тайм','Последовательность работы','Стандартный НЗП','Норма выработки за смену'],ans:3},
+        ]
+      },
+      {
+        id:'2-3', title:'VSM: картирование потока ценности', dur:70,
+        mod:'Ключевые инструменты',
+        sub:'Увидеть весь поток целиком — ключевой инструмент системного мышления',
+        theory:[
+          {h:'Что такое VSM?',
+           p:`Value Stream Map (Карта потока создания ценности) — инструмент визуализации всего потока: от сырья до готового продукта в руках клиента. VSM показывает не только материальные потоки, но и <strong>информационные потоки</strong> — как заказы, команды и данные движутся по системе.`},
+          {h:'Два состояния: текущее и будущее',
+           p:`Работа с VSM всегда начинается с <strong>текущего состояния</strong> (Current State Map) — точной картины того, как работает процесс сегодня. Затем команда анализирует потери и рисует <strong>будущее состояние</strong> (Future State Map) — как должен работать поток через 6-12 месяцев.<br><br>Разница между картами — это план улучшений.`},
+          {h:'Ключевые метрики VSM',
+           html:`<table class="mtable"><thead><tr><th>Метрика</th><th>Формула / Описание</th></tr></thead><tbody>
+             <tr><td><strong>Lead Time (LT)</strong></td><td>Время от сырья до готового продукта у клиента</td></tr>
+             <tr><td><strong>Process Time (PT)</strong></td><td>Сумма времён всех операций</td></tr>
+             <tr><td><strong>% VA</strong></td><td>PT / LT × 100% — доля времени создающего ценность</td></tr>
+             <tr><td><strong>WIP</strong></td><td>Запасы незавершённого производства между операциями</td></tr>
+           </tbody></table>`},
+          {h:'Шаги построения VSM',
+           p:`(1) Выберите продуктовую семью. (2) Пройдите поток от клиента к поставщику — запишите каждый шаг. (3) Соберите данные: время цикла, OEE, WIP, время переналадки. (4) Нарисуйте текущую карту. (5) Рассчитайте метрики. (6) Определите потери и нарисуйте будущее состояние. (7) Составьте план действий.<br><br><div class="ib"><strong>Правило VSM:</strong> Карту рисуют карандашом на бумаге, идя по реальному потоку — не в офисе по данным из SAP.</div>`}
+        ],
+        terms:[
+          {t:'VSM',d:'Value Stream Map — карта потока создания ценности. Инструмент визуализации материального и информационного потоков'},
+          {t:'Lead Time',d:'Общее время от получения сырья до доставки готового продукта клиенту'},
+          {t:'Process Time',d:'Фактическое время выполнения всех операций (сумма времён циклов)'},
+          {t:'% VA',d:'Процент времени создающего ценность: PT/LT × 100%. Типично: 1-10%'},
+        ],
+        task:'Выберите один простой процесс (5-10 шагов). Нарисуйте карту потока: прямоугольники — процессы, треугольники — запасы, стрелки — потоки. Под каждым прямоугольником запишите время цикла. Между прямоугольниками — время ожидания. Подсчитайте Lead Time и % VA.',
+        quiz:[
+          {q:'Что показывает VSM в отличие от обычной схемы процесса?',opts:['Только производственные операции','Только материальный поток','И материальный, и информационный потоки со всеми потерями','Только время цикла операций'],ans:2},
+          {q:'Что такое Lead Time?',opts:['Время выполнения самой длинной операции','Время от сырья до готового продукта у клиента','Время простоя оборудования','Время переналадки'],ans:1},
+          {q:'С чего начинают построение VSM?',opts:['С рисования будущего состояния','С выбора оборудования','С текущего состояния потока','С анализа финансовых показателей'],ans:2},
+        ]
+      },
+      {
+        id:'2-4', title:'Канбан и Pull-системы', dur:60,
+        mod:'Ключевые инструменты',
+        sub:'Производить только то, что нужно — инструменты вытягивающего производства',
+        theory:[
+          {h:'Push vs Pull',
+           p:`<strong>Push (толкание)</strong>: производство по прогнозу. Создаём продукцию заранее, толкаем её вниз по потоку, формируем запасы. Проблема: прогнозы ошибаются, запасы растут, реакция на изменения медленная.<br><br><strong>Pull (вытягивание)</strong>: производство инициируется фактическим потреблением. Следующий процесс «вытягивает» от предыдущего только то, что ему нужно. Запасы минимальны, отклик на спрос — быстрый.`},
+          {h:'Канбан-карточки',
+           p:`<strong>Канбан</strong> (яп. «вывеска», «карточка») — визуальный сигнал, который разрешает и инициирует производство или перемещение. Классическая канбан-карточка содержит: наименование детали, количество, откуда и куда, описание места хранения.<br><br>Правила канбана: (1) Следующий процесс берёт детали только с карточкой канбан. (2) Предыдущий процесс производит только то, что было взято. (3) Дефектные детали не передаются.`},
+          {h:'Расчёт числа карточек',
+           p:`Формула: <strong>N = (D × LT × (1 + k)) / C</strong><br>где D — среднесуточный спрос, LT — Lead Time пополнения (дни), k — коэффициент вариабельности (0,1-0,3), C — размер контейнера.<br><br>Пример: D=100 дет/день, LT=2 дня, k=0,1, C=50 дет. N = (100 × 2 × 1,1) / 50 = 4,4 → 5 канбан-карточек.<br><br><div class="ib"><strong>Канбан = разрешение производить</strong>. Нет карточки — нет производства. Это ключевой принцип.</div>`}
+        ],
+        terms:[
+          {t:'Канбан',d:'Визуальный сигнал (карточка), разрешающий производство или перемещение строго определённого количества'},
+          {t:'Pull',d:'Вытягивание — производство инициируется фактическим потреблением, а не прогнозом'},
+          {t:'Супермаркет',d:'Контролируемый буфер готовых деталей между процессами в Pull-системе'},
+          {t:'FIFO',d:'First In First Out — первый вошёл, первый вышел. Принцип обработки в правильной последовательности'},
+        ],
+        task:'Найдите в своей организации один поток между двумя процессами. Опишите: как сейчас инициируется производство (Push или Pull)? Если Push — какие проблемы это создаёт? Как бы вы организовали канбан-сигнал между этими двумя процессами?',
+        quiz:[
+          {q:'В чём главное отличие Pull от Push?',opts:['Pull работает быстрее','Pull производит по прогнозу, Push — по факту','Pull производит по фактическому спросу, Push — по прогнозу','Push имеет меньше запасов'],ans:2},
+          {q:'Что разрешает производство в канбан-системе?',opts:['Приказ директора','Месячный план','Канбан-карточка','Сигнал из ERP-системы'],ans:2},
+          {q:'При расчёте числа канбан-карточек коэффициент k учитывает:',opts:['Количество операторов','Вариабельность спроса и поставок','Скорость конвейера','Число смен'],ans:1},
+        ]
+      },
+      {
+        id:'2-5', title:'SMED: быстрая переналадка', dur:55,
+        mod:'Ключевые инструменты',
+        sub:'Single Minute Exchange of Die — переналадка менее чем за 10 минут',
+        theory:[
+          {h:'Что такое SMED?',
+           p:`SMED (Single Minute Exchange of Die — «переналадка в одну цифру минут») — методология сокращения времени переналадки оборудования до менее 10 минут. Разработана Сигео Синго в 1950-70х годах на заводах Toyota.<br><br>Зачем это важно? Длинная переналадка вынуждает производить большими партиями (чтобы «размазать» потери времени на переналадку). Большие партии — большие запасы, медленная реакция на изменения. Быстрая переналадка позволяет производить малыми партиями и реагировать на реальный спрос.`},
+          {h:'Внутренние и внешние операции',
+           p:`Ключевое разделение SMED:<br><br><strong>Внутренние операции (IED)</strong> — выполняются только при остановленном оборудовании: снятие штампа, замена инструмента, регулировка.<br><br><strong>Внешние операции (OED)</strong> — можно выполнять пока оборудование работает: подготовка инструмента, прогрев, транспортировка к станку.<br><br>Первый шаг SMED — превратить максимум внутренних операций во внешние.`},
+          {h:'4 шага SMED',
+           html:`<div class="plist">
+             <div class="pitem"><div class="pitem__n">1</div><div class="pitem__b"><h4>Документирование</h4><p>Снять видео переналадки. Записать каждое действие с хронометражем. Без этого шага дальше не двигаться.</p></div></div>
+             <div class="pitem"><div class="pitem__n">2</div><div class="pitem__b"><h4>Разделение</h4><p>Разделить все операции на внутренние (при остановке) и внешние (при работе оборудования).</p></div></div>
+             <div class="pitem"><div class="pitem__n">3</div><div class="pitem__b"><h4>Перевод</h4><p>Перевести максимум внутренних операций во внешние. Это часто даёт 30-50% сокращение без инвестиций.</p></div></div>
+             <div class="pitem"><div class="pitem__n">4</div><div class="pitem__b"><h4>Оптимизация</h4><p>Сократить оставшиеся внутренние операции: параллельная работа двух операторов, быстросъёмные крепления, стандартизированная высота.</p></div></div>
+           </div>`}
+        ],
+        terms:[
+          {t:'SMED',d:'Single Minute Exchange of Die — метод сокращения времени переналадки до менее 10 минут'},
+          {t:'IED',d:'Internal Exchange of Die — внутренние операции, выполняемые только при остановленном оборудовании'},
+          {t:'OED',d:'External Exchange of Die — внешние операции, выполняемые при работающем оборудовании'},
+          {t:'Переналадка',d:'Setup — время между последней хорошей деталью предыдущей серии и первой хорошей деталью следующей'},
+        ],
+        task:'Выберите одну переналадку или смену в вашей работе (смена смены, переход к другому типу документа, переключение задачи). Составьте список всех шагов. Отметьте, какие из них можно выполнить ЗАРАНЕЕ (внешние), а какие — только в момент переключения (внутренние).',
+        quiz:[
+          {q:'Что означает аббревиатура SMED?',opts:['Система минимизации экономических достижений','Single Minute Exchange of Die — переналадка в одну цифру минут','Стандарт менеджмента эффективного дизайна','Ни одно из вышеперечисленных'],ans:1},
+          {q:'Что такое «внешние операции» в SMED?',opts:['Операции вне завода','Операции выполняемые при работающем оборудовании','Операции при остановленном оборудовании','Операции аутсорсинга'],ans:1},
+          {q:'Какой первый шаг методологии SMED?',opts:['Купить новое оборудование','Нанять больше операторов','Снять видео и задокументировать текущую переналадку','Разработать новые крепления'],ans:2},
+        ]
+      },
+      {
+        id:'2-6', title:'Кайдзен: культура непрерывных улучшений', dur:60,
+        mod:'Ключевые инструменты',
+        sub:'Маленькие улучшения каждый день — сила, которая меняет компании',
+        theory:[
+          {h:'Философия Кайдзен',
+           p:`<strong>Кайдзен</strong> (яп. 改善, «изменение к лучшему») — философия непрерывного улучшения через малые, постоянные шаги. В отличие от западного подхода «большого прорыва» (innovation — крупные инвестиции раз в несколько лет), кайдзен — это <strong>ежедневные улучшения</strong> силами самих работников.<br><br>Масааки Имаи в книге «Kaizen: The Key to Japan's Competitive Success» (1986) показал: систематический кайдзен даёт результаты, недостижимые разовыми инвестициями.`},
+          {h:'Цикл PDCA',
+           html:`<div class="plist">
+             <div class="pitem"><div class="pitem__n">P</div><div class="pitem__b"><h4>Plan — Планируй</h4><p>Определи проблему. Проанализируй корневую причину. Разработай план улучшения и ожидаемые результаты.</p></div></div>
+             <div class="pitem"><div class="pitem__n">D</div><div class="pitem__b"><h4>Do — Делай</h4><p>Внедри улучшение в малом масштабе (пилот). Собери данные до и после.</p></div></div>
+             <div class="pitem"><div class="pitem__n">C</div><div class="pitem__b"><h4>Check — Проверяй</h4><p>Сравни результаты с планом. Подтвердились ли гипотезы? Какие побочные эффекты?</p></div></div>
+             <div class="pitem"><div class="pitem__n">A</div><div class="pitem__b"><h4>Act — Действуй</h4><p>Если успешно — стандартизируй и тиражируй. Если нет — вернись к P с новым пониманием.</p></div></div>
+           </div>`},
+          {h:'Кайдзен-блиц',
+           p:`<strong>Кайдзен-блиц</strong> (или Кайдзен-событие) — сфокусированная 3-5 дневная работа команды для быстрого улучшения конкретного процесса. День 1: обучение и анализ текущего состояния. День 2-3: внедрение улучшений. День 4: стандартизация. День 5: презентация результатов.<br><br><div class="ib"><strong>Результат кайдзен-блица:</strong> Обычно достигается 30-50% улучшение по одному из ключевых показателей (производительность, время цикла, площадь, дефекты) за 5 рабочих дней.</div>`}
+        ],
+        terms:[
+          {t:'Кайдзен',d:'Непрерывное улучшение через ежедневные малые шаги, выполняемые самими работниками'},
+          {t:'PDCA',d:'Plan-Do-Check-Act — цикл непрерывного улучшения Деминга-Шухарта'},
+          {t:'Кайдзен-блиц',d:'Сфокусированное 3-5 дневное событие для быстрого улучшения конкретного процесса'},
+          {t:'Стандартизация',d:'Фиксация достигнутого улучшения в стандарте — основа удержания результата'},
+        ],
+        task:'Выберите одну небольшую проблему в своей работе (не более одного шага процесса). Пройдите цикл PDCA: (P) опишите проблему и предложите решение; (D) попробуйте решение; (C) что изменилось?; (A) как зафиксировать результат?',
+        quiz:[
+          {q:'Что означает японское слово «кайдзен»?',opts:['Производство без потерь','Изменение к лучшему','Уважение к людям','Быстрое производство'],ans:1},
+          {q:'Какая буква в аббревиатуре PDCA означает стандартизацию успешного улучшения?',opts:['P','D','C','A'],ans:3},
+          {q:'Сколько дней обычно занимает Кайдзен-блиц?',opts:['1 день','3-5 дней','2 недели','1 месяц'],ans:1},
+        ]
+      },
+    ]
+  },
+  {
+    id:3, title:'Внедрение Lean на практике', lessons:[
+      {
+        id:'3-1', title:'Диагностика предприятия — Гемба-тур', dur:55,
+        mod:'Внедрение Lean',
+        sub:'Как правильно видеть потери на производстве и расставлять приоритеты',
+        theory:[
+          {h:'Принцип «Иди и смотри»',
+           p:`Lean-диагностика начинается не с анализа Excel-таблиц, а с <strong>гемба-тура</strong> — физического обхода производства. Genchi Genbutsu (яп. «иди и смотри сам») — ключевой принцип Toyota.<br><br>Руководитель, принимающий решения не выходя из офиса, видит только отчёты — а не реальность. Гемба открывает то, что невозможно увидеть в цифрах: захламлённые проходы, простаивающих операторов, горы НЗП между операциями.`},
+          {h:'Как проводить гемба-тур',
+           p:`(1) <strong>Идите медленно</strong> — не пробегайте мимо, останавливайтесь у каждой операции. (2) <strong>Смотрите на поток</strong>, а не на людей. Цель — найти потери, а не виновных. (3) <strong>Задавайте вопросы</strong>: «Что мешает вам работать лучше?» Операторы знают ответы. (4) <strong>Наблюдайте полный цикл</strong> — минимум 3 цикла одной операции. (5) <strong>Записывайте наблюдения</strong> — фото, видео, хронометраж.`},
+          {h:'Матрица приоритизации',
+           p:`После гемба-тура у вас будет список из 20-50 проблем. Нужно расставить приоритеты. Используйте матрицу <strong>Impact / Effort</strong>:<br><br><div class="ib">Высокий Impact + Низкий Effort = <strong>Быстрые победы</strong> → делать первыми<br>Высокий Impact + Высокий Effort = <strong>Большие проекты</strong> → планировать<br>Низкий Impact + Низкий Effort = <strong>Заполнители</strong> → делать если есть время<br>Низкий Impact + Высокий Effort = <strong>Избегать</strong> → не делать</div>`}
+        ],
+        terms:[
+          {t:'Гемба',d:'Реальное место, где создаётся ценность. Место проведения производственной диагностики'},
+          {t:'Genchi Genbutsu',d:'«Иди и смотри сам» — принцип принятия решений на основе реальных наблюдений'},
+          {t:'Impact/Effort',d:'Матрица приоритизации: влияние улучшения vs усилия для его реализации'},
+        ],
+        task:'Проведите 30-минутный гемба-тур своего рабочего места или участка. Составьте список наблюдений: минимум 5 потерь по 8 видам Muda. Занесите их в матрицу Impact/Effort. Определите 2-3 «быстрые победы» для немедленного внедрения.',
+        quiz:[
+          {q:'Что означает японский принцип Genchi Genbutsu?',opts:['Производить по стандарту','Иди и смотри сам','Уважай людей','Устраняй потери'],ans:1},
+          {q:'Сколько циклов одной операции нужно наблюдать во время гемба-тура?',opts:['Один цикл','Не менее трёх циклов','Пять и более','Один рабочий день'],ans:1},
+          {q:'Что находится в квадрате «Высокий Impact, Низкий Effort» матрицы приоритизации?',opts:['Большие проекты','Заполнители','Быстрые победы','Задачи для избегания'],ans:2},
+        ]
+      },
+      {
+        id:'3-2', title:'Решение проблем методом А3', dur:60,
+        mod:'Внедрение Lean',
+        sub:'Структурированный подход к анализу проблем и разработке контрмер',
+        theory:[
+          {h:'Что такое А3?',
+           p:`<strong>А3-отчёт</strong> — метод структурированного решения проблем на одном листе бумаги формата А3. Разработан в Toyota как инструмент передачи знаний и командной работы над улучшениями. Размер листа не случаен: A3 вмещает достаточно информации, но заставляет быть лаконичными.`},
+          {h:'Структура А3',
+           html:`<div class="plist">
+             <div class="pitem"><div class="pitem__n">1</div><div class="pitem__b"><h4>Тема и контекст</h4><p>Почему эта проблема важна? Какова связь с целями организации?</p></div></div>
+             <div class="pitem"><div class="pitem__n">2</div><div class="pitem__b"><h4>Текущее состояние</h4><p>Данные и факты о проблеме сейчас. VSM, графики, фото — только факты, без мнений.</p></div></div>
+             <div class="pitem"><div class="pitem__n">3</div><div class="pitem__b"><h4>Целевое состояние</h4><p>Конкретная, измеримая цель: «сократить время с 14 до 7 дней к 31 декабря».</p></div></div>
+             <div class="pitem"><div class="pitem__n">4</div><div class="pitem__b"><h4>Анализ корневых причин</h4><p>5 Почему или диаграмма Исикавы. Найти настоящую причину, а не симптом.</p></div></div>
+             <div class="pitem"><div class="pitem__n">5</div><div class="pitem__b"><h4>Контрмеры</h4><p>Конкретные действия против корневых причин с ответственными и датами.</p></div></div>
+             <div class="pitem"><div class="pitem__n">6</div><div class="pitem__b"><h4>Результаты и следующие шаги</h4><p>Что изменилось? Как стандартизировать? Что делать дальше?</p></div></div>
+           </div>`},
+          {h:'Метод 5 Почему',
+           p:`<strong>5 Почему</strong> — простой инструмент поиска корневой причины. Задавайте вопрос «Почему?» к каждому ответу 5 раз.<br><br>Пример: Деталь бракованная → Почему? → Станок вибрирует → Почему? → Изношен подшипник → Почему? → Нет графика ТО → Почему? → Нет ответственного за ТО → Почему? → Не назначен в должностных инструкциях. <em>Корневая причина: организационный пробел, а не «плохой оператор».</em>`}
+        ],
+        terms:[
+          {t:'А3',d:'Метод структурированного решения проблем на одном листе А3. Включает анализ, контрмеры и результаты'},
+          {t:'5 Почему',d:'Инструмент поиска корневой причины: задавать «почему?» к каждому ответу последовательно 5 раз'},
+          {t:'Диаграмма Исикавы',d:'Причинно-следственная диаграмма (рыбий скелет) для структурирования возможных причин проблемы'},
+          {t:'Контрмеры',d:'В Lean: действия направленные против корневых причин, а не против симптомов'},
+        ],
+        task:'Возьмите реальную проблему из вашей работы. Примените метод 5 Почему: запишите проблему, затем пять раз задайте вопрос «Почему это происходит?». Дойдите до корневой причины. Предложите одну контрмеру, которая устраняет именно корневую причину.',
+        quiz:[
+          {q:'Что означает «А3» в А3-отчёте?',opts:['Третья версия анализа','Формат листа бумаги А3','Три аналитика на проект','Аналитический алгоритм 3-го уровня'],ans:1},
+          {q:'Для чего применяется метод «5 Почему»?',opts:['Для оценки персонала','Для составления плана производства','Для поиска корневой причины проблемы','Для расчёта себестоимости'],ans:2},
+          {q:'Что такое «контрмеры» в Lean?',opts:['Меры наказания виновных','Действия против корневых причин, а не симптомов','Противодействие внедрению Lean','Санкции за нарушение стандартов'],ans:1},
+        ]
+      },
+      {
+        id:'3-3', title:'Управление изменениями при внедрении Lean', dur:50,
+        mod:'Внедрение Lean',
+        sub:'Почему технические решения не работают без людей — и как это исправить',
+        theory:[
+          {h:'Lean — на 80% о людях',
+           p:`Большинство Lean-проектов терпят неудачу не из-за технических проблем, а из-за <strong>сопротивления изменениям</strong>. Инструменты (5S, VSM, канбан) — это 20% успеха. Остальные 80% — это культура, вовлечённость и доверие.<br><br>Типичные симптомы провала: «5S сделали — через месяц всё вернулось», «картировали поток — отчёт пылится на полке».`},
+          {h:'8 шагов Коттера',
+           html:`<div class="tl">
+             <div class="tli"><div class="tl-dc"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-cnt"><span>Шаг 1</span><h4>Создать ощущение срочности</h4><p>Почему нужно меняться именно сейчас? Какова цена бездействия?</p></div></div>
+             <div class="tli"><div class="tl-dc"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-cnt"><span>Шаг 2</span><h4>Создать команду изменений</h4><p>Лидеры с авторитетом, знаниями и влиянием. Без реального спонсора — проект обречён.</p></div></div>
+             <div class="tli"><div class="tl-dc"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-cnt"><span>Шаг 3-4</span><h4>Видение и коммуникация</h4><p>Простое, понятное видение будущего состояния. Объяснять снова и снова по всем каналам.</p></div></div>
+             <div class="tli"><div class="tl-dc"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-cnt"><span>Шаг 5-6</span><h4>Устранить барьеры и быстрые победы</h4><p>Убрать препятствия для изменений. Отметить и показать первые результаты — они дают топливо для продолжения.</p></div></div>
+             <div class="tli"><div class="tl-dc"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-cnt"><span>Шаг 7-8</span><h4>Закрепить и институционализировать</h4><p>Не объявлять победу слишком рано. Встроить новые подходы в системы обучения, KPI, HR.</p></div></div>
+           </div>`},
+          {h:'Работа с сопротивлением',
+           p:`Сопротивление — нормальная реакция на изменения, а не саботаж. Люди боятся: потерять работу, выглядеть некомпетентно, потерять статус или привычный ритм.<br><br><div class="ib"><strong>Правило:</strong> Вовлекайте людей в изменения, а не делайте изменения для них. Тот, кто участвовал в разработке решения, будет его защищать.</div>`}
+        ],
+        terms:[
+          {t:'Управление изменениями',d:'Change Management — структурированный подход к переводу организации из текущего в желаемое состояние'},
+          {t:'Модель Коттера',d:'8-шаговая модель управления изменениями от профессора Гарварда Джона Коттера'},
+          {t:'Спонсор проекта',d:'Руководитель с полномочиями устранять барьеры и обеспечивать ресурсы для изменений'},
+        ],
+        task:'Вспомните один случай неудачного изменения в вашей организации (или известный вам пример). Проанализируйте: какие из 8 шагов Коттера были пропущены? Что можно было сделать иначе? Запишите 2-3 конкретных действия.',
+        quiz:[
+          {q:'Почему большинство Lean-проектов терпят неудачу?',opts:['Неподходящие инструменты','Недостаточно финансирования','Сопротивление изменениям и проблемы с культурой','Нехватка времени'],ans:2},
+          {q:'Что является ключевым принципом вовлечения сотрудников при изменениях?',opts:['Делать изменения для людей, не беспокоя их','Вовлекать людей в разработку решений','Назначить ответственного и контролировать','Внедрять изменения приказом сверху'],ans:1},
+          {q:'Что такое «быстрые победы» в контексте управления изменениями?',opts:['Ускоренное производство','Ранние видимые результаты изменений, которые поддерживают мотивацию команды','Сокращение персонала','Автоматизация процессов'],ans:1},
+        ]
+      },
+      {
+        id:'3-4', title:'Метрики и KPI в Lean', dur:50,
+        mod:'Внедрение Lean',
+        sub:'Как измерять прогресс — ключевые показатели бережливого производства',
+        theory:[
+          {h:'Зачем измерять?',
+           p:`«Нельзя управлять тем, что нельзя измерить» — Питер Друкер. Lean без метрик — это движение вслепую. Но важно измерять <strong>правильные показатели</strong>: не только финансовые результаты (отстающие индикаторы), но и операционные параметры (опережающие индикаторы).`},
+          {h:'Ключевые Lean-метрики',
+           html:`<table class="mtable"><thead><tr><th>Метрика</th><th>Формула</th><th>Что показывает</th></tr></thead><tbody>
+             <tr><td><strong>OEE</strong></td><td>Доступность × Производительность × Качество</td><td>Эффективность использования оборудования. Мировой класс: >85%</td></tr>
+             <tr><td><strong>Lead Time</strong></td><td>Время от заказа до доставки</td><td>Скорость потока. Цель: минимизировать</td></tr>
+             <tr><td><strong>FPY</strong></td><td>Хорошие детали ÷ Всего деталей × 100%</td><td>Качество с первого раза (First Pass Yield)</td></tr>
+             <tr><td><strong>DPMO</strong></td><td>Дефектов ÷ (Деталей × Возможностей) × 10⁶</td><td>Дефектов на миллион возможностей (Six Sigma)</td></tr>
+             <tr><td><strong>Оборачиваемость запасов</strong></td><td>Себестоимость ÷ Средние запасы</td><td>Как быстро запасы превращаются в продажи</td></tr>
+           </tbody></table>`},
+          {h:'Визуальное управление',
+           p:`Lean-метрики должны быть видны всем в реальном времени — на информационных стендах у рабочих мест (не только в отчётах директору).<br><br>Принципы хорошего визуального управления: (1) Данные обновляются ежедневно или в режиме реального времени. (2) Отклонения от плана видны немедленно (красный цвет). (3) Каждый понимает свой вклад в показатель. (4) Данные используются для принятия решений, а не для отчётности.`}
+        ],
+        terms:[
+          {t:'OEE',d:'Overall Equipment Effectiveness — общая эффективность оборудования: Доступность × Производительность × Качество'},
+          {t:'FPY',d:'First Pass Yield — процент продукции прошедшей процесс без переделок с первого раза'},
+          {t:'DPMO',d:'Defects Per Million Opportunities — дефектов на миллион возможностей (метрика Six Sigma)'},
+          {t:'Визуальное управление',d:'Система отображения информации о состоянии производства доступная всем без дополнительных запросов'},
+        ],
+        task:'Определите 3 ключевых KPI для вашего процесса или подразделения. Для каждого укажите: текущее значение, целевое значение, кто отвечает, как часто измеряется. Есть ли у вас сейчас визуальный стенд с этими данными?',
+        quiz:[
+          {q:'Из каких трёх компонентов состоит OEE?',opts:['Скорость, качество, стоимость','Доступность, производительность, качество','Время, стоимость, ресурсы','Люди, оборудование, материалы'],ans:1},
+          {q:'Что такое FPY?',opts:['Скорость потока в год','Доля продукции прошедшей процесс без переделок с первого раза','Финансовый показатель производительности','Количество смен в году'],ans:1},
+          {q:'Где должны быть размещены Lean-метрики?',opts:['Только в отчёте директора','Только в ERP-системе','На видных стендах у рабочих мест, доступных всем','В закрытой базе данных отдела качества'],ans:2},
+        ]
+      },
+    ]
+  },
+  {
+    id:4, title:'Итоговый блок', lessons:[
+      {
+        id:'4-1', title:'Кейс: Lean-трансформация реального завода', dur:70,
+        mod:'Итоговый блок',
+        sub:'Разбор реального внедрения Lean от диагностики до результатов',
+        theory:[
+          {h:'Контекст кейса: машиностроительный завод',
+           p:`Завод по производству промышленных насосов, 850 сотрудников. Проблемы: срыв сроков поставки (60% заказов опаздывают), высокий уровень НЗП (запасы на 45 дней), много переделок (FPY = 72%), OEE главной линии = 48%.`},
+          {h:'Диагностика (Месяц 1-2)',
+           p:`Команда провела гемба-туры на всех участках. VSM показал: Lead Time = 34 дня при фактическом Process Time = 4,2 часа. Коэффициент эффективности потока: 4,2 ч / (34 × 8 ч) = <strong>1,5%</strong>. 98,5% времени продукт ждал, а не создавал ценность.<br><br>Основные потери: 45% времени — ожидание (бюрократические согласования), 30% — лишняя транспортировка между удалёнными участками, 15% — переделки из-за нечётких спецификаций.`},
+          {h:'Приоритеты и план (Месяц 3)',
+           p:`Матрица Impact/Effort определила три «быстрые победы»: (1) ввести электронное согласование вместо бумажного (2 недели), (2) перепланировать участки, убрав 60% транспортных маршрутов (1 месяц), (3) стандартизировать спецификации на 20 самых ходовых позиций (3 недели).`},
+          {h:'Результаты через 12 месяцев',
+           html:`<table class="mtable"><thead><tr><th>Показатель</th><th>До</th><th>После</th><th>Изменение</th></tr></thead><tbody>
+             <tr><td>Lead Time</td><td>34 дня</td><td>9 дней</td><td style="color:#1a6b3c">−74%</td></tr>
+             <tr><td>Своевременная доставка</td><td>40%</td><td>92%</td><td style="color:#1a6b3c">+52 п.п.</td></tr>
+             <tr><td>FPY</td><td>72%</td><td>94%</td><td style="color:#1a6b3c">+22 п.п.</td></tr>
+             <tr><td>OEE</td><td>48%</td><td>71%</td><td style="color:#1a6b3c">+23 п.п.</td></tr>
+             <tr><td>Площадь производства</td><td>100%</td><td>73%</td><td style="color:#1a6b3c">−27%</td></tr>
+           </tbody></table>`},
+          {h:'Главные уроки',
+           p:`(1) <strong>Начинайте с понимания текущего состояния</strong> — не с внедрения инструментов. (2) <strong>Быстрые победы важны</strong> — первые результаты через 4-6 недель поддерживают импульс. (3) <strong>Вовлечённость операторов</strong> — половина идей пришла от рабочих участков. (4) <strong>Стандартизация после каждого улучшения</strong> — иначе через месяц всё возвращается к прежнему.`}
+        ],
+        terms:[
+          {t:'Эффективность потока',d:'Process Time / Lead Time × 100% — доля времени когда продукт реально обрабатывается'},
+          {t:'Своевременная доставка',d:'On-Time Delivery (OTD) — процент заказов доставленных в обещанный срок'},
+          {t:'Импульс изменений',d:'Сохранение темпа и мотивации команды на протяжении всей трансформации'},
+        ],
+        task:'На основе этого кейса напишите «дорожную карту» Lean для вашей организации или подразделения: (1) Какова текущая ситуация? (2) Каковы 3 главные проблемы? (3) Какие 2-3 «быстрые победы» возможны в ближайшие 30 дней? (4) Каков целевой горизонт на 12 месяцев?',
+        quiz:[
+          {q:'Что показал VSM в кейсе? Какова была эффективность потока?',opts:['50%','25%','10%','Около 1,5%'],ans:3},
+          {q:'Какой была главная потеря в кейсе (45% времени)?',opts:['Транспортировка','Дефекты','Ожидание','Перепроизводство'],ans:2},
+          {q:'На сколько сократился Lead Time после 12 месяцев Lean-трансформации?',opts:['На 20%','На 40%','На 74%','На 90%'],ans:2},
+        ]
+      },
+      {
+        id:'4-2', title:'Итоговый тест — 20 вопросов', dur:30,
+        mod:'Итоговый блок',
+        sub:'Проверьте свои знания и получите сертификат курса',
+        isFinal:true,
+        finalQuiz:[
+          {q:'Кто является основоположником Toyota Production System?',opts:['Эйджи Тойода','Тайити Оно','Джеймс Вомак','Масааки Имаи'],ans:1},
+          {q:'Какая потеря считается самой опасной в Lean?',opts:['Дефекты','Ожидание','Перепроизводство','Излишняя обработка'],ans:2},
+          {q:'Что такое VA-операция?',opts:['Операция выполняемая внешним подрядчиком','Операция создающая ценность, за которую готов платить клиент','Операция необходимая по технологическим требованиям','Виртуальная операция в ERP'],ans:1},
+          {q:'Формула Такт-тайма:',opts:['Время цикла × число операторов','Доступное время ÷ Потребность клиента','Число деталей × скорость линии','Время переналадки ÷ число смен'],ans:1},
+          {q:'Что такое «Гемба»?',opts:['Метод картирования потока','Вид потерь в производстве','Реальное место где выполняется работа','Японский стандарт качества'],ans:2},
+          {q:'Сколько «S» в системе 5S?',opts:['3','4','5','6'],ans:2},
+          {q:'VSM расшифровывается как:',opts:['Value Stream Map','Volume Supply Management','Visual Standard Method','Variance Source Mapping'],ans:0},
+          {q:'Что показывает OEE?',opts:['Оценку эффективности сотрудников','Общую эффективность использования оборудования','Объём экономии от Lean','Операционные затраты предприятия'],ans:1},
+          {q:'В методе «5 Почему» задаётся вопрос «почему?»:',opts:['Один раз','Три раза','Пять раз (последовательно к каждому ответу)','Пока не найдётся виновный'],ans:2},
+          {q:'Pull-система означает:',opts:['Производство по месячному плану','Производство инициируется фактическим спросом','Ускоренное производство','Производство под давлением руководства'],ans:1},
+          {q:'Что такое Mura?',opts:['Потери от дефектов','Неравномерность производства','Перегрузка оборудования','Нереализованный потенциал'],ans:1},
+          {q:'Первый шаг SMED — это:',opts:['Купить быстросъёмные крепления','Разделить операции на внутренние и внешние','Снять видео и задокументировать текущую переналадку','Нанять второго оператора'],ans:2},
+          {q:'Что означает FPY?',opts:['Годовой финансовый показатель','Доля продукции прошедшей процесс без переделок с первого раза','Скорость потока в год','Производительность на сотрудника'],ans:1},
+          {q:'Кайдзен-блиц длится обычно:',opts:['1 день','3-5 дней','2-3 недели','1 месяц'],ans:1},
+          {q:'В А3-отчёте «контрмеры» направлены против:',opts:['Нерадивых сотрудников','Симптомов проблемы','Корневых причин проблемы','Конкурентов'],ans:2},
+          {q:'Принцип «Jidoka» означает:',opts:['Производство без запасов','Автоматизация с автостопом при обнаружении дефекта','Картирование потока ценности','Быстрая переналадка'],ans:1},
+          {q:'Типичная доля VA-времени в производственном процессе:',opts:['50-60%','30-40%','10-20%','1-10%'],ans:3},
+          {q:'Что является главной причиной провала Lean-проектов?',opts:['Недостаток инструментов','Нехватка бюджета','Сопротивление изменениям и культурные барьеры','Устаревшее оборудование'],ans:2},
+          {q:'Цикл PDCA в правильном порядке:',opts:['Do-Plan-Check-Act','Plan-Check-Do-Act','Plan-Do-Check-Act','Check-Plan-Do-Act'],ans:2},
+          {q:'Сколько принципов Lean сформулировали Вомак и Джонс?',opts:['3','4','5','7'],ans:2},
+        ]
+      },
+    ]
+  }
+];
+
+// ===================== STATE =====================
+let prog = JSON.parse(localStorage.getItem('li-lean-intro') || '{}');
+let cur = {m:0, l:0};
+let quizState = {};
+
+// ===================== HELPERS =====================
+function allLessons(){
+  const arr = [];
+  MODULES.forEach((m,mi)=>m.lessons.forEach((l,li)=>arr.push({m:mi,l:li,id:l.id})));
+  return arr;
+}
+function totalDone(){return Object.keys(prog).filter(k=>prog[k]).length;}
+function updateProgress(){
+  const done = totalDone(), total = allLessons().length;
+  document.getElementById('progText').textContent = done+' / '+total;
+  document.getElementById('progFill').style.width = Math.round(done/total*100)+'%';
+}
+
+// ===================== SIDEBAR =====================
+function buildSidebar(){
+  const tree = document.getElementById('sidebarTree');
+  tree.innerHTML = '';
+  MODULES.forEach((m,mi)=>{
+    const expanded = m.lessons.some((_,li)=>cur.m===mi);
+    const mod = document.createElement('div');
+    mod.className = 'sidebar-module'+(expanded?' expanded':'');
+    const doneCount = m.lessons.filter(l=>prog[l.id]).length;
+    mod.innerHTML = `<div class="sidebar-module__head" onclick="toggleMod(this)">
+      <span>${m.id}. ${m.title}</span>
+      <span class="sidebar-module__count">${doneCount}/${m.lessons.length}</span>
+    </div>
+    <div class="sidebar-module__lessons">${m.lessons.map((l,li)=>`
+      <div class="sidebar-lesson${cur.m===mi&&cur.l===li?' active':''}${prog[l.id]?' done':''}"
+           onclick="openLesson(${mi},${li})">
+        <div class="sl-check">${prog[l.id]?'✓':''}</div>
+        <div class="sl-info">
+          <span class="sl-title">${l.title}</span>
+          <span class="sl-dur">${l.dur} мин</span>
+        </div>
+      </div>`).join('')}
+    </div>`;
+    tree.appendChild(mod);
+  });
+}
+function toggleMod(el){el.parentElement.classList.toggle('expanded');}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+
+// ===================== LESSON RENDER =====================
+function openLesson(mi, li){
+  cur = {m:mi, l:li};
+  document.getElementById('sidebar').classList.remove('open');
+  buildSidebar();
+  const lesson = MODULES[mi].lessons[li];
+  if(lesson.isFinal){renderFinalTest(lesson); return;}
+  renderLesson(mi, li, lesson);
+  updateProgress();
+}
+
+function renderLesson(mi, li, L){
+  const all = allLessons();
+  const idx = all.findIndex(x=>x.m===mi&&x.l===li);
+  const hasPrev = idx>0, hasNext = idx<all.length-1;
+
+  let theoryHtml = '';
+  (L.theory||[]).forEach(sec=>{
+    theoryHtml += '<div class="ts">';
+    if(sec.h) theoryHtml += `<h3>${sec.h}</h3>`;
+    if(sec.p) theoryHtml += `<p>${sec.p}</p>`;
+    if(sec.html) theoryHtml += sec.html;
+    theoryHtml += '</div>';
+  });
+
+  let termsHtml = '';
+  if(L.terms&&L.terms.length){
+    termsHtml = `<div class="key-terms"><h3>🔑 Ключевые термины</h3><div class="term-list">
+      ${L.terms.map(t=>`<div class="term-item"><span class="term-item__b">${t.t}</span><span class="term-item__d">${t.d}</span></div>`).join('')}
+    </div></div>`;
+  }
+
+  let taskHtml = '';
+  if(L.task){
+    taskHtml = `<div class="task-box"><div class="task-box__label">✏️ Практическое задание</div>
+      <h3>Применить в жизни</h3><p>${L.task}</p></div>`;
+  }
+
+  let quizHtml = '';
+  if(L.quiz&&L.quiz.length){
+    quizHtml = `<div class="quiz-sec"><h3>🧠 Мини-тест</h3>
+      <p class="quiz-sec__sub">Проверьте понимание — 3 вопроса</p>
+      ${L.quiz.map((q,qi)=>`
+        <div class="qitem" id="qi-${L.id}-${qi}">
+          <div class="qitem__n">Вопрос ${qi+1} из ${L.quiz.length}</div>
+          <div class="qitem__q">${q.q}</div>
+          <div class="qopts">${q.opts.map((o,oi)=>`
+            <button class="qopt" onclick="answerQ('${L.id}',${qi},${oi},${q.ans})">${o}</button>
+          `).join('')}</div>
+          <div id="qfb-${L.id}-${qi}"></div>
+        </div>`).join('')}
+      <div class="quiz-result" id="qres-${L.id}">
+        <div class="quiz-result__score" id="qscore-${L.id}">0/3</div>
+        <div class="quiz-result__text">Урок можно завершить!</div>
+      </div>
+    </div>`;
+  }
+
+  const navBtns = `<div class="lesson-nav">
+    ${hasPrev?`<button class="lnbtn lnbtn--prev" onclick="openLesson(${all[idx-1].m},${all[idx-1].l})">← Предыдущий</button>`:'<span></span>'}
+    <button class="lnbtn lnbtn--complete" onclick="completeLesson('${L.id}',${mi},${li},'${hasNext}',${hasNext?all[idx+1].m:0},${hasNext?all[idx+1].l:0})">✓ Завершить урок</button>
+    ${hasNext?`<button class="lnbtn lnbtn--next" onclick="openLesson(${all[idx+1].m},${all[idx+1].l})">Следующий →</button>`:''}
+  </div>`;
+
+  document.getElementById('lessonArea').innerHTML = `
+    <div class="lesson-header">
+      <div class="lesson-header__meta">
+        <span class="lbadge lbadge--mod">${L.mod}</span>
+        <span class="lbadge lbadge--dur">⏱ ${L.dur} мин</span>
+        ${prog[L.id]?'<span class="lbadge" style="background:#e8f5e9;color:#1a6b3c">✓ Пройдено</span>':''}
+      </div>
+      <div class="lesson-header__title">${L.title}</div>
+      <div class="lesson-header__sub">${L.sub}</div>
+    </div>
+    <div class="lesson-video">
+      <div class="lesson-video__ph">
+        <div class="lesson-video__icon">🎬</div>
+        <div class="lesson-video__title">${L.title}</div>
+        <div class="lesson-video__label">Видео доступно после приобретения курса</div>
+      </div>
+    </div>
+    ${theoryHtml}
+    ${termsHtml}
+    ${taskHtml}
+    ${quizHtml}
+    ${navBtns}
+  `;
+  document.getElementById('lessonArea').scrollIntoView({behavior:'smooth',block:'start'});
+  if(document.querySelector('.cp-main')) document.querySelector('.cp-main').scrollTop = 0;
+}
+
+function answerQ(lid, qi, chosen, correct){
+  const container = document.getElementById('qi-'+lid+'-'+qi);
+  if(!container) return;
+  const opts = container.querySelectorAll('.qopt');
+  opts.forEach(o=>o.classList.add('disabled'));
+  opts[chosen].classList.add(chosen===correct?'correct':'wrong');
+  if(chosen!==correct) opts[correct].classList.add('correct');
+  const fb = document.getElementById('qfb-'+lid+'-'+qi);
+  if(fb) fb.innerHTML = `<div class="qfb ${chosen===correct?'ok':'fail'}">${chosen===correct?'✓ Правильно!':'✗ Неправильно. Правильный ответ: '+MODULES.flatMap(m=>m.lessons).find(l=>l.id===lid)?.quiz[qi]?.opts[correct]}</div>`;
+
+  if(!quizState[lid]) quizState[lid]={answers:{}};
+  quizState[lid].answers[qi] = chosen===correct;
+  const L = MODULES.flatMap(m=>m.lessons).find(l=>l.id===lid);
+  if(L&&L.quiz){
+    const done = Object.keys(quizState[lid].answers).length;
+    if(done===L.quiz.length){
+      const score = Object.values(quizState[lid].answers).filter(Boolean).length;
+      const res = document.getElementById('qres-'+lid);
+      if(res){res.style.display='block'; document.getElementById('qscore-'+lid).textContent=score+'/'+L.quiz.length;}
+    }
+  }
+}
+
+function completeLesson(lid, mi, li, hasNext, nm, nl){
+  prog[lid] = true;
+  localStorage.setItem('li-lean-intro', JSON.stringify(prog));
+  updateProgress();
+  buildSidebar();
+  if(hasNext==='true'||hasNext===true) openLesson(nm, nl);
+}
+
+// ===================== FINAL TEST =====================
+let finalAnswers = {};
+function renderFinalTest(L){
+  finalAnswers = {};
+  const qs = L.finalQuiz.map((q,qi)=>`
+    <div class="qitem" id="fq-${qi}" style="margin-bottom:22px">
+      <div class="qitem__n">Вопрос ${qi+1} из ${L.finalQuiz.length}</div>
+      <div class="qitem__q">${q.q}</div>
+      <div class="qopts">${q.opts.map((o,oi)=>`
+        <button class="qopt" id="fqo-${qi}-${oi}" onclick="selectFinal(${qi},${oi},${q.ans},${q.opts.length})">${o}</button>
+      `).join('')}</div>
+      <div id="ffb-${qi}"></div>
+    </div>`).join('');
+
+  document.getElementById('lessonArea').innerHTML = `
+    <div class="lesson-header">
+      <div class="lesson-header__meta"><span class="lbadge lbadge--mod">Итоговый блок</span><span class="lbadge lbadge--dur">⏱ 30 мин</span></div>
+      <div class="lesson-header__title">Итоговый тест</div>
+      <div class="lesson-header__sub">20 вопросов по всему курсу. Для получения сертификата нужно набрать 70%+</div>
+    </div>
+    <div class="quiz-sec">
+      <h3>📋 Итоговый тест</h3>
+      <p class="quiz-sec__sub">Ответьте на все 20 вопросов и нажмите «Завершить тест»</p>
+      ${qs}
+      <div style="text-align:center;margin-top:24px">
+        <button class="lnbtn lnbtn--next" style="padding:14px 32px;font-size:16px" onclick="submitFinal()">Завершить тест →</button>
+      </div>
+    </div>`;
+  if(document.querySelector('.cp-main')) document.querySelector('.cp-main').scrollTop = 0;
+}
+
+function selectFinal(qi, oi, correct, numOpts){
+  for(let i=0;i<numOpts;i++){
+    const b = document.getElementById('fqo-'+qi+'-'+i);
+    if(b){b.classList.remove('correct','wrong'); b.classList.add('disabled');}
+  }
+  const chosen = document.getElementById('fqo-'+qi+'-'+oi);
+  if(chosen) chosen.classList.add(oi===correct?'correct':'wrong');
+  if(oi!==correct){const c=document.getElementById('fqo-'+qi+'-'+correct); if(c) c.classList.add('correct');}
+  finalAnswers[qi] = oi===correct;
+}
+
+function submitFinal(){
+  const total = MODULES[3].lessons[1].finalQuiz.length;
+  const answered = Object.keys(finalAnswers).length;
+  if(answered < total){
+    alert(`Ответьте на все вопросы. Отвечено: ${answered} из ${total}.`);
+    return;
+  }
+  const score = Object.values(finalAnswers).filter(Boolean).length;
+  const pct = Math.round(score/total*100);
+  const pass = pct>=70;
+  const lid = '4-2';
+  if(pass){prog[lid]=true; localStorage.setItem('li-lean-intro',JSON.stringify(prog)); updateProgress(); buildSidebar();}
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+
+  document.getElementById('lessonArea').innerHTML = `
+    <div class="cert-wrap">
+      ${pass ? `
+        <div class="cert-card">
+          <div class="cert-title">Сертификат об окончании курса</div>
+          <div class="cert-main">Введение в Lean Manufacturing</div>
+          <div class="cert-course">LeanPro — Профессиональное образование</div>
+          <div class="cert-seal">🏆</div>
+          <div class="cert-org">⬡ LeanPro</div>
+          <div class="cert-score">Результат теста: ${score}/${total} (${pct}%)</div>
+          <div class="cert-date">Выдан: ${dateStr}</div>
+          <button class="cert-btn" onclick="window.print()">🖨️ Распечатать сертификат</button>
+        </div>
+        <p style="margin-top:24px;color:#6b7280;font-size:14px">Поздравляем! Вы успешно завершили курс «Введение в Lean».<br>Оригинальный сертификат государственного образца будет отправлен на вашу почту.</p>
+      ` : `
+        <div style="font-size:64px;margin-bottom:16px">📉</div>
+        <h2 style="font-size:24px;font-weight:800;margin-bottom:8px">Результат: ${score}/${total} (${pct}%)</h2>
+        <p style="color:#6b7280;margin-bottom:24px">Для получения сертификата необходимо набрать 70% и выше.<br>Повторите материал и попробуйте снова.</p>
+        <button class="lnbtn lnbtn--next" style="padding:12px 28px" onclick="openLesson(3,1)">Пройти тест ещё раз</button>
+      `}
+    </div>`;
+  document.querySelector('.cp-main').scrollTop = 0;
+}
+
+// ===================== BOOT =====================
+buildSidebar();
+updateProgress();
+</script>
+</body>
+</html>
