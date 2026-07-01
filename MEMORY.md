@@ -157,6 +157,7 @@ lean-site/
 | Реквизиты продавца в футере | ✅ (плейсхолдеры, надо заполнить) |
 | SEO meta-теги | ✅ description, keywords, og:* |
 | robots.txt + sitemap.xml | ✅ |
+| Патриотический дизайн | ✅ Триколор, секция «Для России», акцент на импортозамещение |
 
 ---
 
@@ -191,6 +192,7 @@ git push origin main
 | — | `e3a1047` | Replace Google Fonts → Bunny Fonts on ALL pages |
 | — | `0c8f4a7` | Add interactive assembly game to Lean Flow |
 | — | `60f7752` | Add quiz page, update index and styles |
+| 2026-07-01 | `1de49bc` | Patriotic theme: триколор-полоска, секция «Для России» (4 карточки + цитата), 8-я карточка преимуществ «Для российского рынка», партнёры (+Ростех/РЖД/Уралвагонзавод/НЛМК), текст про импортозамещение в hero/about/CTA/футере |
 
 ---
 
