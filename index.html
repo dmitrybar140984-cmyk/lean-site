@@ -4,9 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LeanPro — Курсы по бережливому производству</title>
+  <meta name="description" content="LeanPro — профессиональные курсы по бережливому производству. Сертификат государственного образца. Онлайн-обучение Lean, 5S, VSM, Six Sigma." />
+  <meta name="keywords" content="бережливое производство, lean, курсы lean, 5S, VSM, Six Sigma, кайдзен, обучение lean, лин производство" />
+  <meta name="robots" content="index, follow" />
+  <meta property="og:title" content="LeanPro — Курсы по бережливому производству" />
+  <meta property="og:description" content="Профессиональные курсы Lean для руководителей и инженеров. Сертификат государственного образца." />
+  <meta property="og:type" content="website" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.bunny.net" />
+  <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
 </head>
 <body>
 
@@ -523,7 +529,7 @@
         <textarea name="message" rows="4" placeholder="Ваш вопрос или комментарий..."></textarea>
       </div>
       <button type="submit" class="btn btn--primary btn--full">Отправить заявку</button>
-      <p class="form__note">Нажимая кнопку, вы соглашаетесь с обработкой персональных данных</p>
+      <p class="form__note">Нажимая кнопку, вы соглашаетесь с <a href="privacy.html" target="_blank">политикой обработки персональных данных</a> и <a href="offer.html" target="_blank">договором оферты</a></p>
     </form>
   </div>
 </section>
@@ -557,15 +563,22 @@
     <div class="footer__col">
       <strong>Поддержка</strong>
       <a href="#">FAQ</a>
-      <a href="#">Условия оплаты</a>
-      <a href="#">Политика возврата</a>
-      <a href="#">Политика конфиденциальности</a>
+      <a href="offer.html">Договор оферты</a>
+      <a href="refund.html">Политика возврата</a>
+      <a href="privacy.html">Политика конфиденциальности</a>
+    </div>
+  </div>
+  <div class="footer__legal">
+    <div class="container">
+      <p>ООО «ЛинПро» &nbsp;|&nbsp; ИНН: <strong>[УКАЖИТЕ ИНН]</strong> &nbsp;|&nbsp; ОГРН: <strong>[УКАЖИТЕ ОГРН]</strong></p>
+      <p>Юридический адрес: <strong>[УКАЖИТЕ ЮРИДИЧЕСКИЙ АДРЕС]</strong></p>
+      <p>Лицензия на образовательную деятельность № <strong>[УКАЖИТЕ НОМЕР ЛИЦЕНЗИИ]</strong></p>
     </div>
   </div>
   <div class="footer__bottom">
     <div class="container">
-      <span>© 2024 LeanPro. Все права защищены.</span>
-      <span>Лицензия на образовательную деятельность №12345</span>
+      <span>© 2025 LeanPro. Все права защищены.</span>
+      <span><a href="offer.html" style="color:rgba(255,255,255,0.5);text-decoration:none;">Публичная оферта</a> &nbsp;·&nbsp; <a href="privacy.html" style="color:rgba(255,255,255,0.5);text-decoration:none;">Конфиденциальность</a></span>
     </div>
   </div>
 </footer>
@@ -608,5 +621,25 @@
 <div class="toast" id="toast"></div>
 
 <script src="script.js"></script>
+
+<!-- ===================== COOKIE BANNER ===================== -->
+<div class="cookie-banner" id="cookieBanner">
+  <div class="cookie-banner__text">
+    Мы используем файлы cookie и обрабатываем персональные данные для улучшения работы сайта. Продолжая использовать сайт, вы соглашаетесь с <a href="privacy.html">политикой конфиденциальности</a>.
+  </div>
+  <button class="btn btn--primary btn--sm" id="cookieAccept">Принять</button>
+</div>
+<script>
+  (function() {
+    var banner = document.getElementById('cookieBanner');
+    if (!localStorage.getItem('cookieAccepted')) {
+      banner.classList.add('visible');
+    }
+    document.getElementById('cookieAccept').addEventListener('click', function() {
+      localStorage.setItem('cookieAccepted', '1');
+      banner.classList.remove('visible');
+    });
+  })();
+</script>
 </body>
 </html>
