@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Тест: Определи свой уровень Lean — LeanPro</title>
+  <meta name="description" content="Пройди тест и узнай свой уровень знаний бережливого производства. Теория и практические расчёты Takt time, Exit rate, VSM." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.bunny.net" />
+  <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
+  <style>
+    /* ===== QUIZ PAGE STYLES ===== */
+    body { background: var(--bg-alt); }
+
+    .quiz-page {
+      min-height: 100vh;
+      padding-top: 72px;
+    }
+
+    /* ===== START SCREEN ===== */
+    .quiz-start {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 72px);
+      padding: 48px 24px;
+      text-align: center;
+    }
+    .quiz-start__emoji {
+      font-size: 80px;
+      margin-bottom: 24px;
+      animation: bounceIn 0.8s ease;
+      display: block;
+    }
+    .quiz-start__tag {
+      display: inline-block;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .quiz-start__title {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .quiz-start__title span { color: var(--primary); }
+    .quiz-start__sub {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    .quiz-start__meta {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+    }
+    .quiz-meta-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .quiz-meta-item__num {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .quiz-meta-item__label {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .quiz-levels-preview {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .level-preview {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      text-align: center;
+      min-width: 90px;
+      transition: transform 0.2s;
+    }
+    .level-preview:hover { transform: translateY(-3px); }
+    .level-preview__emoji { font-size: 28px; display: block; margin-bottom: 4px; }
+    .level-preview__name { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    /* ===== QUIZ WRAPPER ===== */
+    .quiz-wrapper {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ===== PROGRESS ===== */
+    .quiz-progress {
+      margin-bottom: 32px;
+    }
+    .quiz-progress__top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .quiz-progress__label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .quiz-progress__count {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .progress-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-bar__fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #2e9e5e);
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+    .quiz-block-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+    .quiz-block-badge--calc {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .quiz-block-badge--tools {
+      background: #ede9fe;
+      color: #5b21b6;
+    }
+    .quiz-block-badge--advanced {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* ===== QUESTION CARD ===== */
+    .question-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      box-shadow: var(--shadow);
+      animation: slideUp 0.4s ease;
+    }
+    .question-card__num {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .question-card__text {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.45;
+      color: var(--text);
+      margin-bottom: 28px;
+    }
+    .question-card__formula {
+      background: var(--bg-alt);
+      border-left: 4px solid var(--primary);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .question-card__formula strong { color: var(--primary); }
+
+    /* ===== OPTIONS ===== */
+    .options { display: flex; flex-direction: column; gap: 12px; }
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg-alt);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      transform: translateX(4px);
+    }
+    .option-btn:disabled { cursor: default; }
+    .option-btn.correct {
+      border-color: #16a34a;
+      background: #dcfce7;
+      color: #14532d;
+    }
+    .option-btn.wrong {
+      border-color: #dc2626;
+      background: #fee2e2;
+      color: #7f1d1d;
+    }
+    .option-letter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 50%;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .option-btn.correct .option-letter { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .option-btn.wrong .option-letter { background: #dc2626; border-color: #dc2626; color: #fff; }
+    .option-btn:hover:not(:disabled) .option-letter { border-color: var(--primary); color: var(--primary); }
+
+    /* ===== EXPLANATION ===== */
+    .question-explanation {
+      margin-top: 20px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 14px;
+      color: #14532d;
+      line-height: 1.6;
+      display: none;
+    }
+    .question-explanation.visible { display: block; animation: fadeIn 0.3s ease; }
+    .question-explanation strong { font-weight: 700; }
+
+    /* ===== NEXT BUTTON ===== */
+    .quiz-nav {
+      margin-top: 28px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .btn-next {
+      display: none;
+      padding: 14px 32px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-next.visible { display: flex; align-items: center; gap: 8px; animation: fadeIn 0.3s ease; }
+    .btn-next:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(26,107,60,0.3); }
+
+    /* ===== RESULT SCREEN ===== */
+    .quiz-result {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+      display: none;
+      animation: slideUp 0.5s ease;
+    }
+    .result-header {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 36px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--primary-light) 0%, transparent 70%);
+      z-index: 0;
+    }
+    .result-header > * { position: relative; z-index: 1; }
+
+    .result-character {
+      font-size: 100px;
+      display: block;
+      margin-bottom: 8px;
+      animation: characterPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      line-height: 1.2;
+    }
+    .result-character-art {
+      font-size: 64px;
+      line-height: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 16px;
+    }
+    .result-level-badge {
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .result-level-name {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .result-desc {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto 28px;
+      line-height: 1.7;
+    }
+    .result-score-bar {
+      background: var(--bg-alt);
+      border-radius: 99px;
+      height: 16px;
+      max-width: 400px;
+      margin: 0 auto 12px;
+      overflow: hidden;
+    }
+    .result-score-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 1s ease;
+    }
+    .result-score-text {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .result-score-text span { color: var(--primary); }
+
+    /* Level color themes */
+    .theme-beginner .result-level-badge { background: #fef3c7; color: #92400e; }
+    .theme-beginner .result-score-fill { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .theme-beginner .result-level-name { color: #92400e; }
+
+    .theme-practitioner .result-level-badge { background: #dbeafe; color: #1e40af; }
+    .theme-practitioner .result-score-fill { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .theme-practitioner .result-level-name { color: #1e40af; }
+
+    .theme-master .result-level-badge { background: var(--primary-light); color: var(--primary); }
+    .theme-master .result-score-fill { background: linear-gradient(90deg, var(--primary), #2e9e5e); }
+    .theme-master .result-level-name { color: var(--primary); }
+
+    .theme-ninja .result-level-badge { background: #ede9fe; color: #5b21b6; }
+    .theme-ninja .result-score-fill { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+    .theme-ninja .result-level-name { color: #5b21b6; }
+
+    .theme-sensei .result-level-badge { background: #fef9c3; color: #713f12; }
+    .theme-sensei .result-score-fill { background: linear-gradient(90deg, #eab308, #f59e0b); }
+    .theme-sensei .result-level-name { color: #92400e; }
+
+    /* ===== SCORE BREAKDOWN ===== */
+    .score-breakdown {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .score-breakdown h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+    .breakdown-items { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .breakdown-item {
+      background: var(--bg-alt);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .breakdown-item__label { font-size: 13px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+    .breakdown-item__score { font-size: 22px; font-weight: 800; }
+    .score-ok { color: var(--primary); }
+    .score-calc { color: #f59e0b; }
+    .score-miss { color: #dc2626; }
+
+    /* ===== COURSES RECOMMENDATION ===== */
+    .courses-recommendation {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+    }
+    .courses-recommendation h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .courses-recommendation p { color: var(--text-muted); font-size: 15px; margin-bottom: 20px; }
+    .rec-courses { display: flex; flex-direction: column; gap: 12px; }
+    .rec-course {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+    .rec-course:hover { border-color: var(--primary); background: var(--primary-light); transform: translateX(4px); }
+    .rec-course__icon { font-size: 28px; flex-shrink: 0; }
+    .rec-course__info { flex: 1; }
+    .rec-course__title { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+    .rec-course__meta { font-size: 13px; color: var(--text-muted); }
+    .rec-course__level {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--primary-light);
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    /* ===== RESULT ACTIONS ===== */
+    .result-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes bounceIn {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.1); }
+      70% { transform: scale(0.9); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes characterPop {
+      0% { transform: scale(0); opacity: 0; }
+      60% { transform: scale(1.2); }
+      80% { transform: scale(0.95); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(24px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ===== CONFETTI ===== */
+    .confetti-container {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      animation: confettiFall linear forwards;
+    }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 600px) {
+      .question-card { padding: 24px 20px; }
+      .result-header { padding: 36px 20px; }
+      .score-breakdown { padding: 20px; }
+      .courses-recommendation { padding: 20px; }
+      .breakdown-items { grid-template-columns: 1fr; }
+      .result-character { font-size: 72px; }
+      .quiz-levels-preview { gap: 8px; }
+      .level-preview { min-width: 70px; padding: 10px 12px; }
+      .level-preview__emoji { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a href="index.html" class="logo">
+      <span class="logo__icon">⬡</span>
+      <span class="logo__text">Lean<strong>Pro</strong></span>
+    </a>
+    <nav class="nav" id="nav">
+      <a href="index.html#about" class="nav__link">О нас</a>
+      <a href="index.html#courses" class="nav__link">Курсы</a>
+      <a href="lean-flow.html" class="nav__link nav__link--new">🌊 Lean Flow</a>
+      <a href="index.html#contact" class="nav__link">Контакты</a>
+    </nav>
+    <button class="burger" id="burger" aria-label="Меню">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<div class="quiz-page">
+
+  <!-- ===== START SCREEN ===== -->
+  <div id="startScreen" class="quiz-start">
+    <span class="quiz-start__emoji">🎯</span>
+    <p class="quiz-start__tag">Бесплатный тест</p>
+    <h1 class="quiz-start__title">Какой ты <span>Lean-специалист?</span></h1>
+    <p class="quiz-start__sub">20 вопросов — теория и практические расчёты. Узнай свой уровень и получи персональные рекомендации по курсам.</p>
+
+    <div class="quiz-start__meta">
+      <div class="quiz-meta-item">
+        <span class="quiz-meta-item__num">20</span>
+        <span class="quiz-meta-item__label">вопросов</span>
+      </div>
+      <div class="quiz-meta-item">
+        <span class="quiz-meta-item__num">~10</span>
+        <span class="quiz-meta-item__label">минут</span>
+      </div>
+      <div class="quiz-meta-item">
+        <span class="quiz-meta-item__num">5</span>
+        <span class="quiz-meta-item__label">уровней</span>
+      </div>
+    </div>
+
+    <div class="quiz-levels-preview">
+      <div class="level-preview">
+        <span class="level-preview__emoji">🫖</span>
+        <span class="level-preview__name">Чайник</span>
+      </div>
+      <div class="level-preview">
+        <span class="level-preview__emoji">🤓</span>
+        <span class="level-preview__name">Очкарик</span>
+      </div>
+      <div class="level-preview">
+        <span class="level-preview__emoji">🔨</span>
+        <span class="level-preview__name">Мастер</span>
+      </div>
+      <div class="level-preview">
+        <span class="level-preview__emoji">🥷</span>
+        <span class="level-preview__name">Ниндзя</span>
+      </div>
+      <div class="level-preview">
+        <span class="level-preview__emoji">👑</span>
+        <span class="level-preview__name">Сенсей</span>
+      </div>
+    </div>
+
+    <button class="btn btn--primary btn--lg" onclick="startQuiz()">Начать тест →</button>
+  </div>
+
+  <!-- ===== QUIZ SCREEN ===== -->
+  <div id="quizScreen" class="quiz-wrapper" style="display:none;">
+    <div class="quiz-progress">
+      <div class="quiz-progress__top">
+        <span class="quiz-progress__label" id="progressLabel">Блок 1: Теория</span>
+        <span class="quiz-progress__count" id="progressCount">1 / 20</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-bar__fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div id="blockBadge" class="quiz-block-badge">📚 Теория — основы</div>
+
+    <div class="question-card" id="questionCard">
+      <div class="question-card__num" id="questionNum">Вопрос 1 из 20</div>
+      <div class="question-card__text" id="questionText"></div>
+      <div class="question-card__formula" id="questionFormula" style="display:none;"></div>
+      <div class="options" id="optionsContainer"></div>
+      <div class="question-explanation" id="explanation"></div>
+    </div>
+
+    <div class="quiz-nav">
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()">
+        Следующий вопрос →
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== RESULT SCREEN ===== -->
+  <div id="resultScreen" class="quiz-result">
+
+    <div class="result-header" id="resultHeader">
+      <div class="result-character" id="resultCharacter"></div>
+      <div class="result-level-badge" id="resultBadge"></div>
+      <div class="result-level-name" id="resultLevelName"></div>
+      <div class="result-desc" id="resultDesc"></div>
+      <div class="result-score-bar">
+        <div class="result-score-fill" id="resultScoreFill" style="width:0%"></div>
+      </div>
+      <div class="result-score-text" id="resultScoreText"></div>
+    </div>
+
+    <div class="score-breakdown">
+      <h3>Результаты по блокам</h3>
+      <div class="breakdown-items">
+        <div class="breakdown-item">
+          <div class="breakdown-item__label">📚 Теория (вопросы 1–5)</div>
+          <div class="breakdown-item__score score-ok" id="scoreTheory1">—</div>
+        </div>
+        <div class="breakdown-item">
+          <div class="breakdown-item__label">🧮 Расчёты (вопросы 6–10)</div>
+          <div class="breakdown-item__score score-calc" id="scoreCalc">—</div>
+        </div>
+        <div class="breakdown-item">
+          <div class="breakdown-item__label">🔧 Инструменты (вопросы 11–15)</div>
+          <div class="breakdown-item__score score-ok" id="scoreTools">—</div>
+        </div>
+        <div class="breakdown-item">
+          <div class="breakdown-item__label">🚀 Продвинутые (вопросы 16–20)</div>
+          <div class="breakdown-item__score score-calc" id="scoreAdvanced">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="courses-recommendation">
+      <h3>Рекомендованные курсы</h3>
+      <p id="recIntro"></p>
+      <div class="rec-courses" id="recCourses"></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn btn--ghost btn--lg" onclick="restartQuiz()">🔄 Пройти ещё раз</button>
+      <a href="index.html#courses" class="btn btn--primary btn--lg">Смотреть все курсы →</a>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- CONFETTI CONTAINER -->
+<div class="confetti-container" id="confettiContainer"></div>
+
+<script>
+/* ===== QUIZ DATA ===== */
+const QUESTIONS = [
+  /* ── BLOCK 1: Theory basics (1–5) ── */
+  {
+    block: 'theory',
+    blockLabel: '📚 Теория — основы',
+    badgeClass: '',
+    text: 'Что такое Takt time в бережливом производстве?',
+    options: [
+      'Время выполнения одной производственной операции',
+      'Ритм производства, задаваемый спросом клиента',
+      'Время простоя оборудования между заказами',
+      'Скорость движения производственного конвейера'
+    ],
+    correct: 1,
+    explanation: '<strong>Takt time</strong> — это максимально допустимое время на производство одной единицы продукции, рассчитанное из спроса клиента. Формула: Takt time = Доступное время / Спрос клиента. Это «пульс» производственной системы.'
+  },
+  {
+    block: 'theory',
+    blockLabel: '📚 Теория — основы',
+    badgeClass: '',
+    text: 'Что означает первый «S» в системе 5S?',
+    options: [
+      'Стандартизация (Standardize)',
+      'Систематизация (Systematize)',
+      'Сортировка (Sort)',
+      'Совершенствование (Sustain)'
+    ],
+    correct: 2,
+    explanation: 'Пять шагов 5S: <strong>Сортировка → Систематизация → Содержание в чистоте → Стандартизация → Совершенствование</strong>. Первый шаг — убрать всё лишнее с рабочего места, оставив только необходимое.'
+  },
+  {
+    block: 'theory',
+    blockLabel: '📚 Теория — основы',
+    badgeClass: '',
+    text: 'VSM — это аббревиатура для обозначения:',
+    options: [
+      'Vertical Supply Management — вертикальное управление поставками',
+      'Value System Model — модель системы ценностей',
+      'Value Stream Mapping — картирование потока создания ценности',
+      'Variable Speed Mechanism — механизм переменной скорости'
+    ],
+    correct: 2,
+    explanation: '<strong>Value Stream Mapping (VSM)</strong> — инструмент визуализации всего потока создания ценности: от поступления сырья до получения продукта клиентом. Помогает выявить потери и спроектировать будущее состояние процесса.'
+  },
+  {
+    block: 'theory',
+    blockLabel: '📚 Теория — основы',
+    badgeClass: '',
+    text: 'Найдите ЛИШНЕЕ в списке 8 видов потерь (Muda) бережливого производства:',
+    options: [
+      'Перепроизводство',
+      'Лишние движения операторов',
+      'Инновации и улучшения',
+      'Дефекты и переработка'
+    ],
+    correct: 2,
+    explanation: 'Восемь видов потерь MUDA: перепроизводство, ожидание, лишняя транспортировка, излишние запасы, лишние движения, лишняя обработка, дефекты, неиспользованный потенциал сотрудников. <strong>Инновации — это не потеря, а ценность!</strong>'
+  },
+  {
+    block: 'theory',
+    blockLabel: '📚 Теория — основы',
+    badgeClass: '',
+    text: 'Что такое Exit Rate производственной линии?',
+    options: [
+      'Процент брака и дефектных изделий на линии',
+      'Скорость выхода готовых изделий с производственной линии',
+      'Скорость загрузки сырья в начале линии',
+      'Коэффициент общей эффективности оборудования OEE'
+    ],
+    correct: 1,
+    explanation: '<strong>Exit Rate</strong> — количество единиц продукции, выходящих с производственной линии в единицу времени (например, штук/час). Обратная величина к Takt time: Exit Rate = 1 / Takt time. Если Takt time = 10 мин/ед, то Exit Rate = 6 ед/час.'
+  },
+
+  /* ── BLOCK 2: Calculations (6–10) ── */
+  {
+    block: 'calc',
+    blockLabel: '🧮 Практические расчёты',
+    badgeClass: 'quiz-block-badge--calc',
+    formula: 'Takt time = Доступное время / Спрос клиента\nДоступное время: <strong>480 мин</strong>  |  Спрос: <strong>60 ед/смену</strong>',
+    text: 'Рассчитайте Takt time. Доступное время в смену — 480 минут, плановый спрос — 60 единиц в смену.',
+    options: [
+      '6 мин/ед',
+      '8 мин/ед',
+      '10 мин/ед',
+      '12 мин/ед'
+    ],
+    correct: 1,
+    explanation: '<strong>Takt time = 480 мин ÷ 60 ед = 8 мин/ед.</strong> Это значит, что каждые 8 минут с линии должна выходить одна готовая единица продукции.'
+  },
+  {
+    block: 'calc',
+    blockLabel: '🧮 Практические расчёты',
+    badgeClass: 'quiz-block-badge--calc',
+    formula: 'Exit Rate (ед/час) = 60 мин ÷ Takt time\nTakt time = <strong>10 мин/ед</strong>',
+    text: 'Если Takt time составляет 10 мин/ед, каков Exit Rate производственной линии (единиц в час)?',
+    options: [
+      '5 ед/час',
+      '6 ед/час',
+      '10 ед/час',
+      '100 ед/час'
+    ],
+    correct: 1,
+    explanation: '<strong>Exit Rate = 60 мин ÷ 10 мин/ед = 6 ед/час.</strong> Линия будет выпускать 6 единиц за каждый час работы.'
+  },
+  {
+    block: 'calc',
+    blockLabel: '🧮 Практические расчёты',
+    badgeClass: 'quiz-block-badge--calc',
+    formula: 'Времена цикла операций: <strong>9 — 12 — 7 — 11 мин</strong>\nTakt time = <strong>10 мин/ед</strong>',
+    text: 'На линии 4 операции со временами цикла: 9, 12, 7 и 11 мин. Takt time = 10 мин/ед. Какая операция является узким местом?',
+    options: [
+      'Операция 1 (9 мин) — незначительно ниже такта',
+      'Операция 2 (12 мин) — превышает Takt time',
+      'Операция 3 (7 мин) — самая быстрая',
+      'Операция 4 (11 мин) — превышает Takt time'
+    ],
+    correct: 1,
+    explanation: '<strong>Узкое место — Операция 2 (12 мин)</strong>, она максимально превышает Takt time (10 мин). Именно она ограничивает производительность всей линии. Операция 4 (11 мин) тоже превышает такт, но меньше — её нужно устранить в следующую очередь.'
+  },
+  {
+    block: 'calc',
+    blockLabel: '🧮 Практические расчёты',
+    badgeClass: 'quiz-block-badge--calc',
+    formula: 'Рабочая смена: <strong>8 часов = 480 мин</strong>\nПерерыв: <strong>30 мин</strong>\nДоступное время: <strong>450 мин</strong>\nСпрос: <strong>45 ед/смену</strong>',
+    text: 'Рабочая смена — 8 часов. Обеденный перерыв — 30 мин. Плановый спрос — 45 единиц в смену. Рассчитайте Takt time.',
+    options: [
+      '8 мин/ед',
+      '10 мин/ед',
+      '12 мин/ед',
+      '15 мин/ед'
+    ],
+    correct: 1,
+    explanation: '<strong>Доступное время = 480 − 30 = 450 мин. Takt time = 450 ÷ 45 = 10 мин/ед.</strong> Перерывы и плановые остановки всегда вычитаются из фонда рабочего времени перед расчётом такта.'
+  },
+  {
+    block: 'calc',
+    blockLabel: '🧮 Практические расчёты',
+    badgeClass: 'quiz-block-badge--calc',
+    formula: 'Takt time = 60 мин ÷ Exit Rate\nExit Rate = <strong>12 ед/час</strong>',
+    text: 'Если Exit Rate линии составляет 12 единиц в час, чему равен Takt time?',
+    options: [
+      '4 мин/ед',
+      '5 мин/ед',
+      '6 мин/ед',
+      '12 мин/ед'
+    ],
+    correct: 1,
+    explanation: '<strong>Takt time = 60 мин ÷ 12 ед/час = 5 мин/ед.</strong> Takt time и Exit Rate — обратные друг другу величины. Чем выше Exit Rate, тем меньше Takt time.'
+  },
+
+  /* ── BLOCK 3: Tools (11–15) ── */
+  {
+    block: 'tools',
+    blockLabel: '🔧 Инструменты Lean',
+    badgeClass: 'quiz-block-badge--tools',
+    text: 'Что такое SMED (Single Minute Exchange of Die)?',
+    options: [
+      'Система управления складскими запасами',
+      'Метод быстрой переналадки оборудования менее чем за 10 минут',
+      'Метод расчёта трудозатрат по нормированию',
+      'Программа обучения и сертификации операторов линии'
+    ],
+    correct: 1,
+    explanation: '<strong>SMED</strong> (Single Minute Exchange of Die) — методика сокращения времени переналадки оборудования до «однозначного числа минут» (менее 10 минут). Разработана Сигэо Синго. Переналадка делится на внутренние (при остановке) и внешние (на ходу) операции.'
+  },
+  {
+    block: 'tools',
+    blockLabel: '🔧 Инструменты Lean',
+    badgeClass: 'quiz-block-badge--tools',
+    text: 'Poka-Yoke — это:',
+    options: [
+      'Японская философия непрерывного совершенствования',
+      'Метод защиты от непреднамеренных ошибок оператора',
+      'Тип производственных потерь (избыточная обработка)',
+      'Система визуального управления производством'
+    ],
+    correct: 1,
+    explanation: '<strong>Poka-Yoke</strong> (яп. «защита от дурака») — метод предотвращения ошибок путём проектирования процессов, при которых совершить ошибку физически невозможно или крайне сложно. Примеры: USB-разъём только одной стороной, асимметричные детали, датчики наличия.'
+  },
+  {
+    block: 'tools',
+    blockLabel: '🔧 Инструменты Lean',
+    badgeClass: 'quiz-block-badge--tools',
+    text: 'Что такое Heijunka в бережливом производстве?',
+    options: [
+      'Тип потерь: перепроизводство в начале месяца',
+      'Выравнивание производства по объёму и номенклатуре продукции',
+      'Метод аудита рабочих мест по стандарту 5S',
+      'Инструмент анализа первопричин дефектов (диаграмма Исикавы)'
+    ],
+    correct: 1,
+    explanation: '<strong>Heijunka</strong> — выравнивание производственной нагрузки: равномерное распределение заказов по объёму и ассортименту во времени. Устраняет «эффект конца месяца», снижает запасы и повышает предсказуемость потока.'
+  },
+  {
+    block: 'tools',
+    blockLabel: '🔧 Инструменты Lean',
+    badgeClass: 'quiz-block-badge--tools',
+    text: 'В стандартных обозначениях VSM треугольник с буквой «I» внутри означает:',
+    options: [
+      'Входящий информационный поток',
+      'Производственные запасы или буферный склад',
+      'Инструкцию по работе (рабочий стандарт)',
+      'Индикатор проблемного места на карте'
+    ],
+    correct: 1,
+    explanation: 'В нотации VSM <strong>треугольник с «I» (Inventory)</strong> — стандартный символ для обозначения производственных запасов или межоперационных буферов. Рядом обычно указывается количество единиц и время хранения.'
+  },
+  {
+    block: 'tools',
+    blockLabel: '🔧 Инструменты Lean',
+    badgeClass: 'quiz-block-badge--tools',
+    text: 'OEE (Overall Equipment Effectiveness) рассчитывается как:',
+    options: [
+      'Производительность × Качество',
+      'Доступность × Производительность × Качество',
+      'Фактическое время / Плановое время × 100%',
+      'Объём выпуска / Мощность оборудования × 100%'
+    ],
+    correct: 1,
+    explanation: '<strong>OEE = Доступность × Производительность × Качество.</strong> Мировой класс OEE ≥ 85%. Потери делятся на шесть видов: поломки, переналадки, малые остановки, снижение скорости, дефекты при запуске, дефекты в производстве (метод TPM).'
+  },
+
+  /* ── BLOCK 4: Advanced (16–20) ── */
+  {
+    block: 'advanced',
+    blockLabel: '🚀 Продвинутый уровень',
+    badgeClass: 'quiz-block-badge--advanced',
+    text: 'Принцип Pull (вытягивание) в производственной системе означает:',
+    options: [
+      'Производство по максимально возможному плану для пополнения склада',
+      'Производство только по сигналу от последующего процесса или клиента',
+      'Ускорение производства за счёт параллельных смен и сверхурочных',
+      'Хранение больших запасов готовой продукции для быстрой отгрузки'
+    ],
+    correct: 1,
+    explanation: '<strong>Pull (вытягивание)</strong> — каждый процесс производит ровно столько, сколько потребляет следующий. Противоположность Push (проталкивание). Реализуется через Канбан-сигналы. Устраняет перепроизводство и снижает незавершённое производство.'
+  },
+  {
+    block: 'advanced',
+    blockLabel: '🚀 Продвинутый уровень',
+    badgeClass: 'quiz-block-badge--advanced',
+    text: 'Что такое CODP (Customer Order Decoupling Point)?',
+    options: [
+      'Точка вхождения заказа — граница между производством на склад и под заказ',
+      'Метод расчёта полной себестоимости с учётом накладных расходов',
+      'Система оценки и квалификации поставщиков по качеству',
+      'Тип автоматизированного конвейерного оборудования Toyota'
+    ],
+    correct: 0,
+    explanation: '<strong>CODP (точка вхождения заказа)</strong> разделяет цепочку поставок: до неё — производство на прогноз (Make-to-Stock), после — производство под конкретный заказ клиента (Make-to-Order). Правильное позиционирование CODP снижает запасы и время отклика.'
+  },
+  {
+    block: 'advanced',
+    blockLabel: '🚀 Продвинутый уровень',
+    badgeClass: 'quiz-block-badge--advanced',
+    formula: 'Времена цикла 6 операций: <strong>8 — 6 — 10 — 7 — 9 — 8 мин</strong>\nTakt time = <strong>9 мин/ед</strong>',
+    text: 'На линии сборки 6 операций. Takt time = 9 мин/ед. Сколько операций превышают Takt time и требуют балансировки?',
+    options: [
+      '1 операция (только операция 3: 10 мин > 9 мин)',
+      '2 операции (операции 3 и 5)',
+      '3 операции',
+      'Ни одной — все операции в норме'
+    ],
+    correct: 0,
+    explanation: '<strong>Только операция 3 (10 мин) превышает Takt time (9 мин).</strong> Операция 5 равна такту (9 мин = 9 мин) — она на грани, но не превышает. В процессе LADM-балансировки «красным» маркируется только операция 3.'
+  },
+  {
+    block: 'advanced',
+    blockLabel: '🚀 Продвинутый уровень',
+    badgeClass: 'quiz-block-badge--advanced',
+    formula: 'Фактическая производительность линии: <strong>30 ед/час</strong>\nТребуемый Exit Rate (спрос): <strong>25 ед/час</strong>',
+    text: 'Производительность линии — 30 ед/час, а требуемый Exit Rate по спросу — 25 ед/час. Что это означает?',
+    options: [
+      'Линия не справляется с планом — нужны срочные меры',
+      'Линия имеет избыточную мощность — риск перепроизводства при работе на полной скорости',
+      'Оборудование морально устарело и требует замены',
+      'Нужно немедленно добавить операторов для выравнивания'
+    ],
+    correct: 1,
+    explanation: '<strong>Линия производит больше, чем нужно клиенту</strong> (30 > 25 ед/час). Если запустить её на полную мощность — возникнет перепроизводство (вид MUDA №1). Правильное решение: замедлить линию до Exit Rate = 25 ед/час, т.е. Takt time = 60÷25 = 2,4 мин/ед.'
+  },
+  {
+    block: 'advanced',
+    blockLabel: '🚀 Продвинутый уровень',
+    badgeClass: 'quiz-block-badge--advanced',
+    text: 'Что такое «время такта» (Takt time) в контексте методологии LADM (балансировки производственных линий)?',
+    options: [
+      'Максимально допустимое время цикла на каждой операции для выполнения плана без потерь',
+      'Суммарное фактическое время всех операций на линии сборки',
+      'Время на плановое техническое обслуживание и смазку оборудования',
+      'Минимальное время переналадки при смене номенклатуры изделий'
+    ],
+    correct: 0,
+    explanation: 'В LADM <strong>Takt time — это целевой показатель</strong> для каждой операции: ни одна не должна его превышать. Операции выше такта (красная зона) — узкие места для устранения. Цель балансировки — выровнять все операции ниже или равно Takt time при минимальном числе операторов.'
+  }
+];
+
+/* ===== LEVEL CONFIG ===== */
+const LEVELS = [
+  {
+    min: 0, max: 6,
+    theme: 'theme-beginner',
+    emoji: '🫖',
+    name: 'Чайник',
+    badge: '🌱 Новичок',
+    desc: 'Кипит энтузиазм, но Lean-чайник ещё не заварился! Ничего страшного — все великие мастера начинали с нуля. Базовые курсы помогут быстро набрать скорость.',
+    recIntro: 'Рекомендуем начать с фундаментальных курсов — они дадут прочную базу и помогут разобраться с ключевыми концепциями Lean:',
+    courses: [
+      { icon: '📋', title: 'Введение в Lean', meta: '16 ч · Базовый · 6 900 ₽', level: 'Старт', href: 'index.html#courses' },
+      { icon: '🗂️', title: 'Система 5S на производстве', meta: '12 ч · Базовый · 5 900 ₽', level: 'Базовый', href: 'index.html#courses' }
+    ]
+  },
+  {
+    min: 7, max: 10,
+    theme: 'theme-practitioner',
+    emoji: '🤓',
+    name: 'Очкарик',
+    badge: '📖 Практик',
+    desc: 'Теория подтянута, очки начищены! Вы знаете основные термины, но практические расчёты пока вызывают затруднения. Пора перейти от книг к реальным инструментам.',
+    recIntro: 'Вы готовы к инструментальным курсам — VSM и Кайдзен укрепят теорию реальной практикой:',
+    courses: [
+      { icon: '🔄', title: 'Картирование потока (VSM)', meta: '20 ч · Базовый · 8 900 ₽', level: 'Базовый+', href: 'vsm.html' },
+      { icon: '🎯', title: 'Кайдзен и непрерывное улучшение', meta: '24 ч · Продвинутый · 18 900 ₽', level: 'Средний', href: 'index.html#courses' }
+    ]
+  },
+  {
+    min: 11, max: 14,
+    theme: 'theme-master',
+    emoji: '🔨',
+    name: 'Lean-мастер',
+    badge: '⚙️ Специалист',
+    desc: 'Золотые руки Lean-мастера! Вы уверенно считаете такт и понимаете инструменты. Время овладеть проектированием производственных потоков и систем.',
+    recIntro: 'Ваш уровень позволяет освоить продвинутые инструменты проектирования линий и потоков:',
+    courses: [
+      { icon: '🌊', title: 'Lean Flow: производственный поток', meta: '28 ч · Продвинутый · 17 900 ₽', level: 'Продвинутый', href: 'lean-flow.html' },
+      { icon: '🏗️', title: 'LADM: Архитектура производственных линий', meta: '32 ч · Продвинутый · 24 900 ₽', level: 'Продвинутый', href: 'ladm.html' }
+    ]
+  },
+  {
+    min: 15, max: 17,
+    theme: 'theme-ninja',
+    emoji: '🥷',
+    name: 'Lean-ниндзя',
+    badge: '🥷 Эксперт',
+    desc: 'Тихо, быстро, без потерь! Вы владеете Lean на экспертном уровне. Осталось добавить статистику Six Sigma и стать полноценным руководителем трансформации.',
+    recIntro: 'Для выхода на лидерский уровень рекомендуем комплексные программы:',
+    courses: [
+      { icon: '⚙️', title: 'Six Sigma Green Belt', meta: '40 ч · Продвинутый · 29 900 ₽', level: 'Эксперт', href: 'index.html#courses' },
+      { icon: '🚀', title: 'Lean-лидер: полный курс', meta: '60 ч · Продвинутый · 34 900 ₽', level: 'Лидер', href: 'index.html#courses' }
+    ]
+  },
+  {
+    min: 18, max: 20,
+    theme: 'theme-sensei',
+    emoji: '👑',
+    name: 'Lean-сенсей',
+    badge: '👑 Сенсей',
+    desc: 'Кланяемся! Вы достигли высшего уровня владения Lean. Ваши знания готовы к применению в масштабе всего предприятия. Теперь ваша миссия — передавать их другим.',
+    recIntro: 'Ваш уровень — масштабные корпоративные трансформации. Самое время вести за собой команды:',
+    courses: [
+      { icon: '🏭', title: 'Lean-трансформация предприятия', meta: 'Корпоративный · от 150 000 ₽', level: 'Корпоративный', href: 'index.html#courses' },
+      { icon: '🚀', title: 'Lean-лидер: полный курс', meta: '60 ч + менторство 3 мес · 34 900 ₽', level: 'Лидер', href: 'index.html#courses' }
+    ]
+  }
+];
+
+/* ===== STATE ===== */
+let currentQ = 0;
+let answers = [];
+let answered = false;
+
+/* ===== START ===== */
+function startQuiz() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  renderQuestion();
+}
+
+/* ===== RENDER QUESTION ===== */
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  answered = false;
+
+  /* progress */
+  const pct = (currentQ / QUESTIONS.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = (currentQ + 1) + ' / ' + QUESTIONS.length;
+  document.getElementById('progressLabel').textContent = q.blockLabel;
+
+  /* badge */
+  const badge = document.getElementById('blockBadge');
+  badge.textContent = q.blockLabel;
+  badge.className = 'quiz-block-badge ' + (q.badgeClass || '');
+
+  /* question */
+  document.getElementById('questionNum').textContent = 'Вопрос ' + (currentQ + 1) + ' из ' + QUESTIONS.length;
+  document.getElementById('questionText').textContent = q.text;
+
+  const formulaEl = document.getElementById('questionFormula');
+  if (q.formula) {
+    formulaEl.style.display = 'block';
+    formulaEl.innerHTML = q.formula.replace(/\n/g, '<br>');
+  } else {
+    formulaEl.style.display = 'none';
+  }
+
+  /* options */
+  const container = document.getElementById('optionsContainer');
+  container.innerHTML = '';
+  const letters = ['А', 'Б', 'В', 'Г'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.addEventListener('click', () => selectAnswer(i));
+    container.appendChild(btn);
+  });
+
+  /* explanation */
+  const expEl = document.getElementById('explanation');
+  expEl.className = 'question-explanation';
+  expEl.innerHTML = '';
+
+  /* next btn */
+  const nextBtn = document.getElementById('btnNext');
+  nextBtn.className = 'btn-next';
+  nextBtn.textContent = currentQ < QUESTIONS.length - 1 ? 'Следующий вопрос →' : 'Посмотреть результаты 🎉';
+}
+
+/* ===== SELECT ANSWER ===== */
+function selectAnswer(chosen) {
+  if (answered) return;
+  answered = true;
+
+  const q = QUESTIONS[currentQ];
+  const correct = q.correct;
+  answers.push({ chosen, correct: correct, isRight: chosen === correct });
+
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    else if (i === chosen && chosen !== correct) btn.classList.add('wrong');
+  });
+
+  const expEl = document.getElementById('explanation');
+  expEl.innerHTML = q.explanation;
+  expEl.className = 'question-explanation visible';
+
+  const nextBtn = document.getElementById('btnNext');
+  nextBtn.className = 'btn-next visible';
+  nextBtn.textContent = currentQ < QUESTIONS.length - 1 ? 'Следующий вопрос →' : 'Посмотреть результаты 🎉';
+}
+
+/* ===== NEXT QUESTION ===== */
+function nextQuestion() {
+  if (!answered) return;
+  currentQ++;
+  if (currentQ >= QUESTIONS.length) {
+    showResult();
+  } else {
+    /* animate card */
+    const card = document.getElementById('questionCard');
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(30px)';
+    setTimeout(() => {
+      card.style.transition = 'none';
+      card.style.opacity = '';
+      card.style.transform = '';
+      renderQuestion();
+      setTimeout(() => { card.style.transition = ''; }, 50);
+    }, 250);
+    card.style.transition = 'opacity 0.25s, transform 0.25s';
+  }
+}
+
+/* ===== SHOW RESULT ===== */
+function showResult() {
+  document.getElementById('quizScreen').style.display = 'none';
+  const resultEl = document.getElementById('resultScreen');
+  resultEl.style.display = 'block';
+
+  const total = answers.filter(a => a.isRight).length;
+  const level = LEVELS.find(l => total >= l.min && total <= l.max) || LEVELS[0];
+
+  /* calc block scores */
+  const blocks = [
+    answers.slice(0, 5).filter(a => a.isRight).length,
+    answers.slice(5, 10).filter(a => a.isRight).length,
+    answers.slice(10, 15).filter(a => a.isRight).length,
+    answers.slice(15, 20).filter(a => a.isRight).length
+  ];
+  document.getElementById('scoreTheory1').textContent = blocks[0] + ' / 5';
+  document.getElementById('scoreCalc').textContent = blocks[1] + ' / 5';
+  document.getElementById('scoreTools').textContent = blocks[2] + ' / 5';
+  document.getElementById('scoreAdvanced').textContent = blocks[3] + ' / 5';
+
+  /* header */
+  const header = document.getElementById('resultHeader');
+  header.className = 'result-header ' + level.theme;
+
+  document.getElementById('resultCharacter').textContent = level.emoji;
+  document.getElementById('resultBadge').textContent = level.badge;
+  document.getElementById('resultLevelName').textContent = level.name;
+  document.getElementById('resultDesc').textContent = level.desc;
+
+  const pct = Math.round((total / QUESTIONS.length) * 100);
+  document.getElementById('resultScoreText').innerHTML = `Правильных ответов: <span>${total} из ${QUESTIONS.length}</span> (${pct}%)`;
+
+  setTimeout(() => {
+    document.getElementById('resultScoreFill').style.width = pct + '%';
+  }, 300);
+
+  /* courses */
+  document.getElementById('recIntro').textContent = level.recIntro;
+  const recContainer = document.getElementById('recCourses');
+  recContainer.innerHTML = level.courses.map(c => `
+    <a href="${c.href}" class="rec-course">
+      <span class="rec-course__icon">${c.icon}</span>
+      <div class="rec-course__info">
+        <div class="rec-course__title">${c.title}</div>
+        <div class="rec-course__meta">${c.meta}</div>
+      </div>
+      <span class="rec-course__level">${c.level}</span>
+    </a>
+  `).join('');
+
+  /* confetti for good scores */
+  if (total >= 15) spawnConfetti();
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ===== RESTART ===== */
+function restartQuiz() {
+  currentQ = 0;
+  answers = [];
+  answered = false;
+  document.getElementById('resultScreen').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ===== CONFETTI ===== */
+function spawnConfetti() {
+  const colors = ['#1a6b3c', '#f5a623', '#3b82f6', '#7c3aed', '#e91e63', '#2e9e5e'];
+  const container = document.getElementById('confettiContainer');
+  container.innerHTML = '';
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.cssText = `
+      left: ${Math.random() * 100}%;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      width: ${6 + Math.random() * 10}px;
+      height: ${6 + Math.random() * 10}px;
+      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+      animation-duration: ${2 + Math.random() * 3}s;
+      animation-delay: ${Math.random() * 0.8}s;
+    `;
+    container.appendChild(piece);
+  }
+  setTimeout(() => { container.innerHTML = ''; }, 5000);
+}
+
+/* ===== HEADER SCROLL ===== */
+window.addEventListener('scroll', () => {
+  document.getElementById('header').classList.toggle('scrolled', window.scrollY > 10);
+});
+
+/* ===== BURGER ===== */
+document.getElementById('burger').addEventListener('click', () => {
+  document.getElementById('nav').classList.toggle('mobile-open');
+});
+</script>
+</body>
+</html>
