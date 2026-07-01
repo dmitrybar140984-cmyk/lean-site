@@ -895,3 +895,77 @@ body {
   .footer__bottom .container { flex-direction: column; text-align: center; }
   .process__step { min-width: 100%; max-width: 100%; }
 }
+
+/* ====== RUSSIA TOPBAR (триколор) ====== */
+.russia-topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  display: flex;
+  z-index: 1100;
+  pointer-events: none;
+}
+.russia-topbar span { flex: 1; }
+.russia-topbar span:nth-child(1) { background: #f0f0f0; box-shadow: inset 0 -1px 0 rgba(0,0,0,0.06); }
+.russia-topbar span:nth-child(2) { background: #0039A6; }
+.russia-topbar span:nth-child(3) { background: #D52B1E; }
+
+/* ====== FOR RUSSIA SECTION ====== */
+.for-russia { background: var(--bg-alt); }
+.for-russia__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+.for-russia__card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  transition: all var(--transition);
+}
+.for-russia__card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: #0039A6;
+}
+.for-russia__icon { font-size: 36px; margin-bottom: 16px; }
+.for-russia__card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+.for-russia__card p { color: var(--text-muted); font-size: 15px; line-height: 1.6; }
+
+.for-russia__quote-wrap {
+  background: #f0f4ff;
+  border-radius: var(--radius);
+  padding: 32px 40px;
+  position: relative;
+  overflow: hidden;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.for-russia__quote-wrap::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 6px;
+  background: linear-gradient(to bottom,
+    #f0f0f0 0% 33.33%,
+    #0039A6 33.33% 66.66%,
+    #D52B1E 66.66% 100%
+  );
+}
+.for-russia__quote {
+  font-size: 19px;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.7;
+  text-align: center;
+}
+.for-russia__quote strong { color: var(--primary); font-style: normal; }
+
+/* ====== PATRIOTIC BENEFIT CARD ====== */
+.benefit-card--russia {
+  border-color: rgba(213,43,30,0.25);
+  background: linear-gradient(135deg, #fff8f8 0%, #fff 100%);
+}
+.benefit-card--russia:hover { border-color: #D52B1E; box-shadow: var(--shadow); }
